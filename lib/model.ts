@@ -1,4 +1,4 @@
-export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';photo_path:string|null;photo_y:number;photo_url?:string};
+export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
 export type Match={id:string;name:string;played_on:string;starts_at?:string|null;status:'open'|'closed';created_by:string};
 export type Performance={id:string;session_id:string;player_id:string;goals:number;assists:number;revision:number;updated_at:string};
 export type Attendance={session_id:string;player_id:string;confirmed_at:string};
@@ -25,3 +25,5 @@ export function attendanceWindow(match:Match,now=Date.now()){
  const start=match.starts_at?Date.parse(match.starts_at):NaN;
  return {canConfirm:match.status==='open'&&now<start,canCancel:match.status==='open'&&now<=start-3600000,started:now>=start};
 }
+
+export function photoStyle(player:Profile){const x=player.photo_x??50,y=player.photo_y,z=player.photo_zoom??1;return {objectPosition:x+'% '+y+'%',transform:'scale('+z+')',transformOrigin:x+'% '+y+'%'};}

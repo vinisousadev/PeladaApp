@@ -10,6 +10,7 @@ export function friendlyError(error:unknown){
  if(e.message?.includes('Confirme sua presença'))return 'Confirme a presença antes de registrar o desempenho.';
  if(e.message?.includes('após o início'))return 'Registre o desempenho somente após o início da pelada.';
  if(e.message?.includes('Já existe desempenho'))return 'Não é possível cancelar uma participação com desempenho registrado.';
+ if(e.code==='PGRST204'&&(e.message?.includes('photo_x')||e.message?.includes('photo_zoom')))return 'Para salvar o enquadramento, o organizador precisa executar a migração 006 no Supabase.';
  if(e.code==='PGRST205'||e.code==='PGRST202'||e.code==='42703')return 'O banco precisa da atualização de presença. Peça ao organizador para executar a migração 004.';
  if(e.code==='23505')return 'Esse registro já existe. Atualize a página para ver os dados atuais.';
  if(e.code==='user_already_exists'||e.message?.includes('User already registered'))return 'Este e-mail já tem uma conta. Volte para entrar com sua senha ou use Esqueci minha senha.';

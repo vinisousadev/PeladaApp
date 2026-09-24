@@ -109,5 +109,12 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await assert.rejects(asUser(b,`select public.set_attendance('${upcoming}',false)`),/encerrada/);
  await assert.rejects(asUser('00000000-0000-0000-0000-000000000099',`select public.set_attendance('${upcoming}',true)`),/não autorizado/);
  await db.exec('begin;set local role anon;');await assert.rejects(db.query(`select public.set_attendance('${upcoming}',true)`));await db.exec('rollback');
+ await db.exec(readFileSync(new URL('../supabase/migrations/006_photo_framing.sql',import.meta.url),'utf8'));
+ assert.deepEqual((await db.query(`select photo_x,photo_zoom::text from public.profiles where id='${a}'`)).rows,[{photo_x:50,photo_zoom:'1.00'}]);
+ await asUser(a,`update public.profiles set photo_x=75,photo_zoom=2.25 where id='${a}'`);
+ assert.deepEqual((await db.query(`select photo_x,photo_zoom::text from public.profiles where id='${a}'`)).rows,[{photo_x:75,photo_zoom:'2.25'}]);
+ assert.equal((await asUser(b,`update public.profiles set photo_x=0,photo_zoom=3 where id='${a}' returning id`)).rows.length,0);
+ await assert.rejects(asUser(a,`update public.profiles set photo_zoom=3.01 where id='${a}'`));
+ await assert.rejects(asUser(a,`update public.profiles set photo_x=101 where id='${a}'`));
  await db.close();
 });
