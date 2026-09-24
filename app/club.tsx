@@ -32,6 +32,7 @@ import {
   attendanceWindow,
   startTimestamp,
   scheduleLabel,
+  photoStyle,
   currentDate,
   dateLabel,
   monthLabel,
@@ -95,7 +96,7 @@ function PlayerCard({
             <img
               src={player.photo_url}
               alt={`Foto de ${player.display_name}`}
-              style={{ objectPosition: `50% ${player.photo_y}%` }}
+              style={photoStyle(player)}
             />
           ) : (
             <div className="card-initials">
@@ -786,6 +787,8 @@ export default function Club() {
           display_name: profile.display_name,
           position: profile.position,
           photo_y: profile.photo_y,
+          photo_x: profile.photo_x ?? 50,
+          photo_zoom: profile.photo_zoom ?? 1,
           photo_path: path,
         })
         .eq("id", userId)
@@ -1381,49 +1384,8 @@ export default function Club() {
   );
 }
 
-function Ranking({
-  rows,
-  me,
-  onSelect,
-}: {
-  rows: Ranked[];
-  me: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <div className="table-wrap">
-      <table className="ranking-table">
-        <thead>
-          <tr>
-            <th>JOGADOR</th>
-            <th>G</th>
-            <th>A</th>
-            <th>PTS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((p) => (
-            <tr key={p.id} className={p.rank === 1 ? "leader" : ""}>
-              <td>
-                <button onClick={() => onSelect(p.id)}>
-                  <span className="rank-number">
-                    {String(p.rank).padStart(2, "0")}
-                  </span>
-                  <span>
-                    {p.display_name}
-                    {p.id === me && <small className="you-label">você</small>}
-                  </span>
-                </button>
-              </td>
-              <td>{p.goals}</td>
-              <td>{p.assists}</td>
-              <td>{p.points}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+function Ranking({rows,me,onSelect}:{rows:Ranked[];me:string;onSelect:(id:string)=>void}) {
+ return <div className="standings-wrap"><table className="standings-table"><caption className="sr-only">Classificação dos jogadores no mês selecionado</caption><thead><tr><th scope="col">Jogador</th><th scope="col"><abbr title="Gols">G</abbr></th><th scope="col"><abbr title="Assistências">A</abbr></th><th scope="col">PTS</th></tr></thead><tbody>{rows.map(p=><tr key={p.id} className={[p.rank<=3?'standings-top':'',p.id===me?'standings-me':''].join(' ')}><th scope="row"><button className="standings-person" onClick={()=>onSelect(p.id)} aria-label={'Ver carta de '+p.display_name}><span className={'standings-place place-'+p.rank}>{p.rank===1?<Trophy size={16}/>:p.rank}<span className="sr-only">{p.rank===1?'1º lugar':''}</span></span><span className="standings-avatar">{p.photo_url?<img src={p.photo_url} alt="" style={photoStyle(p)}/>:p.display_name.slice(0,2).toUpperCase()}</span><span className="standings-name"><strong>{p.display_name}</strong><small>{p.position} · {p.played} {p.played===1?'pelada':'peladas'}{p.id===me&&<em>VOCÊ</em>}</small></span></button></th><td><span className="standings-stat">{p.goals}</span></td><td><span className="standings-stat">{p.assists}</span></td><td><span className="standings-points">{p.points}</span></td></tr>)}</tbody></table>{!rows.length&&<p className="muted">Nenhum jogador neste ranking.</p>}</div>;
 }
 function Empty({ title, text }: { title: string; text: string }) {
   return (
@@ -1646,6 +1608,8 @@ function ProfileEditor({
   const [name, setName] = useState(player.display_name),
     [position, setPosition] = useState(player.position),
     [y, setY] = useState(player.photo_y),
+    [x, setX] = useState(player.photo_x ?? 50),
+    [zoom, setZoom] = useState(player.photo_zoom ?? 1),
     [photo, setPhoto] = useState<File | null>(null),
     [preview, setPreview] = useState(player.photo_url),
     [busy, setBusy] = useState(false),
@@ -1669,6 +1633,8 @@ function ProfileEditor({
       setPhoto(normalized);
       setPreview(tempUrl.current);
       setY(25);
+      setX(50);
+      setZoom(1);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1681,7 +1647,7 @@ function ProfileEditor({
     setError("");
     try {
       await save(
-        { ...player, display_name: name.trim(), position, photo_y: y },
+        { ...player, display_name: name.trim(), position, photo_y: y, photo_x: x, photo_zoom: zoom },
         photo,
       );
       setPhoto(null);
@@ -1694,13 +1660,15 @@ function ProfileEditor({
   return (
     <div className="profile-layout">
       <section className="profile-preview">
-        <span className="eyebrow">SUA CARTINHA / {monthLabel(month)}</span>
+        <span className="eyebrow">SUA CARTA / {monthLabel(month)}</span>
         <PlayerCard
           player={{
             ...player,
             display_name: name,
             position,
             photo_y: y,
+            photo_x: x,
+            photo_zoom: zoom,
             photo_url: preview,
           }}
           month={month}
@@ -1743,6 +1711,9 @@ function ProfileEditor({
           />
           <small>JPG, PNG ou WebP · até 5 MB</small>
         </label>
+        <div className="photo-controls"><div className="section-heading"><h3>Enquadrar foto</h3><button className="text-button" type="button" disabled={busy||preparing} onClick={()=>{setX(50);setY(25);setZoom(1);}}>Redefinir</button></div><p className="muted">Ajuste a foto e confira o resultado na carta. Salve para aplicar.</p></div>
+        <label>Enquadramento horizontal <output>{x}%</output><input aria-label="Enquadramento horizontal" type="range" min="0" max="100" value={x} disabled={busy||preparing} onChange={e=>setX(Number(e.target.value))}/></label>
+        <label>Zoom da foto <output>{zoom.toFixed(2)}×</output><input aria-label="Zoom da foto" type="range" min="1" max="3" step="0.05" value={zoom} disabled={busy||preparing} onChange={e=>setZoom(Number(e.target.value))}/></label>
         <label>
           Enquadramento vertical
           <input
