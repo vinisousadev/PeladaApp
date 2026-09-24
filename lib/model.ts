@@ -1,7 +1,7 @@
-export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
+export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';membership?:'monthly'|'guest';photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
 export type Match={id:string;name:string;played_on:string;starts_at?:string|null;status:'open'|'closed';created_by:string};
 export type Performance={id:string;session_id:string;player_id:string;goals:number;assists:number;revision:number;updated_at:string};
-export type Attendance={session_id:string;player_id:string;confirmed_at:string};
+export type Attendance={session_id:string;player_id:string;confirmed_at:string;status?:'confirmed'|'waiting';queue_order?:number};
 export type Slot={email:string;display_name:string;role:'player'|'admin'};
 export type Audit={id:number;actor_id:string;performance_id:string;action:string;created_at:string;old_values:Performance|null;new_values:Performance};
 export type ClubData={profiles:Profile[];sessions:Match[];performances:Performance[];attendances:Attendance[];slots:Slot[];audit:Audit[]};

@@ -570,7 +570,7 @@ export default function Club() {
     if (!validTotals(goals, assists)) throw Error("invalid");
     if (
       !data.attendances.some(
-        (a) => a.session_id === session.id && a.player_id === player.id,
+        (a) => a.session_id === session.id && a.player_id === player.id && a.status !== "waiting",
       )
     )
       throw Error("Confirme sua presença");
@@ -629,13 +629,21 @@ export default function Club() {
     }
     setNotice("Desempenho salvo. O ranking já foi atualizado.");
   }
-  async function createMatch(name: string, date: string, time: string) {
+  async function setMembership(player: Profile, membership: 'monthly' | 'guest') {
+ if(demo){
+ if(membership==='monthly' && player.membership!=='monthly' && data.profiles.filter(p=>p.membership==='monthly').length>=24) throw Error('24 mensalistas');
+ setData(d=>({...d,profiles:d.profiles.map(p=>p.id===player.id?{...p,membership}:p)}));
+ }else{const {error}=await getSupabase()!.rpc('set_membership',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
+ setNotice('Tipo de jogador atualizado. A confirmação automática vale para novas peladas.');
+ }
+ async function createMatch(name: string, date: string, time: string) {
     if (demo) {
+      const sessionId=crypto.randomUUID();
       setData((d) => ({
         ...d,
         sessions: [
           {
-            id: crypto.randomUUID(),
+            id: sessionId,
             name,
             played_on: date,
             starts_at: startTimestamp(date, time),
@@ -643,8 +651,9 @@ export default function Club() {
             created_by: me!.id,
           },
           ...d.sessions,
-        ],
-      }));
+ ],
+ attendances:[...d.attendances,...d.profiles.filter(p=>p.membership==='monthly').map(p=>({session_id:sessionId,player_id:p.id,confirmed_at:new Date().toISOString(),status:'confirmed' as const}))],
+ }));
     } else {
       const { error } = await getSupabase()!
         .from("sessions")
@@ -657,41 +666,24 @@ export default function Club() {
       if (error) throw error;
       await load();
     }
-    setNotice("Pelada criada. A turma já pode confirmar presença.");
+    setNotice("Pelada criada. Mensalistas confirmados automaticamente; inscrições abertas para convidados.");
   }
   async function setAttendance(session: Match, confirm: boolean) {
     if (demo) {
-      const own = data.attendances.some(
-        (a) => a.session_id === session.id && a.player_id === me!.id,
-      );
-      const window = attendanceWindow(session);
-      if (confirm && !own) {
-        if (!window.canConfirm) throw Error("confirmações encerraram");
-        if (
-          data.attendances.filter((a) => a.session_id === session.id).length >=
-          24
-        )
-          throw Error("24 participantes");
-      }
-      if (!confirm && own && !window.canCancel)
-        throw Error("cancelamento encerrou");
-      setData((d) => ({
-        ...d,
-        attendances: confirm
-          ? [
-              ...d.attendances.filter(
-                (a) => !(a.session_id === session.id && a.player_id === me!.id),
-              ),
-              {
-                session_id: session.id,
-                player_id: me!.id,
-                confirmed_at: new Date().toISOString(),
-              },
-            ]
-          : d.attendances.filter(
-              (a) => !(a.session_id === session.id && a.player_id === me!.id),
-            ),
-      }));
+      const own=data.attendances.find(a=>a.session_id===session.id && a.player_id===me!.id);
+ const window=attendanceWindow(session);
+ if(confirm && own || !confirm && !own)return;
+ if(confirm && !window.canConfirm)throw Error('confirmações encerraram');
+ if(!confirm && !window.canCancel)throw Error('cancelamento encerrou');
+ if(!confirm && data.performances.some(p=>p.session_id===session.id && p.player_id===me!.id))throw Error('Já existe desempenho');
+ setData(d=>{
+ let attendances=d.attendances.filter(a=>!(a.session_id===session.id && a.player_id===me!.id));
+ if(confirm)attendances.push({session_id:session.id,player_id:me!.id,confirmed_at:new Date().toISOString(),status:'waiting',queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1});
+ const free=24-attendances.filter(a=>a.session_id===session.id && a.status!=='waiting').length;
+ const promoted=new Set(attendances.filter(a=>a.session_id===session.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).slice(0,free).map(a=>a.player_id));
+ attendances=attendances.map(a=>a.session_id===session.id && promoted.has(a.player_id)?{...a,status:'confirmed' as const}:a);
+ return {...d,attendances};
+ });
     } else {
       const { error } = await getSupabase()!.rpc("set_attendance", {
         p_session_id: session.id,
@@ -705,8 +697,8 @@ export default function Club() {
     }
     setNotice(
       confirm
-        ? "Presença confirmada! Sua vaga está reservada."
-        : "Presença cancelada. A vaga foi liberada.",
+        ? "Inscrição realizada! Confira abaixo sua confirmação ou posição na lista de espera."
+        : "Inscrição cancelada. A fila foi atualizada automaticamente.",
     );
   }
   async function scheduleMatch(session: Match, date: string, time: string) {
@@ -1128,15 +1120,17 @@ export default function Club() {
                     <MatchRow
                       key={s.id}
                       confirmed={data.attendances.some(
-                        (a) => a.session_id === s.id && a.player_id === me.id,
+                        (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
                       )}
                       participants={data.attendances
-                        .filter((a) => a.session_id === s.id)
+                        .filter((a) => a.session_id === s.id && a.status !== "waiting")
                         .map((a) =>
                           data.profiles.find((p) => p.id === a.player_id),
                         )
                         .filter((p): p is Profile => Boolean(p))}
-                      onAttendance={(confirm) => setAttendance(s, confirm)}
+                      waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ meId={me.id}
+ onAttendance={(confirm) => setAttendance(s, confirm)}
                       match={s}
                       performance={data.performances.find(
                         (p) => p.session_id === s.id && p.player_id === me.id,
@@ -1266,15 +1260,17 @@ export default function Club() {
                   <MatchRow
                     key={s.id}
                     confirmed={data.attendances.some(
-                      (a) => a.session_id === s.id && a.player_id === me.id,
+                      (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
                     )}
                     participants={data.attendances
-                      .filter((a) => a.session_id === s.id)
+                      .filter((a) => a.session_id === s.id && a.status !== "waiting")
                       .map((a) =>
                         data.profiles.find((p) => p.id === a.player_id),
                       )
                       .filter((p): p is Profile => Boolean(p))}
-                    onAttendance={(confirm) => setAttendance(s, confirm)}
+                    waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ meId={me.id}
+ onAttendance={(confirm) => setAttendance(s, confirm)}
                     match={s}
                     performance={data.performances.find(
                       (p) => p.session_id === s.id && p.player_id === me.id,
@@ -1329,6 +1325,7 @@ export default function Club() {
               createMatch={createMatch}
               toggleMatch={toggleMatch}
               scheduleMatch={scheduleMatch}
+ setMembership={setMembership}
               onEdit={(session, player) => setEditing({ session, player })}
             />
           )}
@@ -1747,15 +1744,17 @@ function ProfileEditor({
 }
 
 function Admin({
-  data,
+ setMembership,
+ data,
   month,
   createMatch,
   toggleMatch,
   scheduleMatch,
   onEdit,
 }: {
+  setMembership: (p: Profile, membership: 'monthly'|'guest') => Promise<void>;
   data: ClubData;
-  month: string;
+ month: string;
   createMatch: (n: string, d: string, t: string) => Promise<void>;
   scheduleMatch: (s: Match, d: string, t: string) => Promise<void>;
   toggleMatch: (s: Match) => Promise<void>;
@@ -1947,8 +1946,9 @@ function Admin({
             </div>
             <p className="muted">
               Cada jogador cria a própria conta pelo site. Não é necessário
-              liberar acessos. O limite continua sendo de 24 participantes por
-              pelada.
+              liberar acessos. Marque até 24 mensalistas: eles entram automaticamente nas novas peladas.
+ Alterar o tipo não muda inscrições em peladas já criadas. Convidados entram por ordem de inscrição, conforme as vagas.
+ Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
             </p>
           </div>
           <div className="section-space">
@@ -1958,9 +1958,10 @@ function Admin({
                   <strong>{p.display_name}</strong>
                   <p>{p.position}</p>
                 </div>
-                <span className="badge">
-                  {p.role === "admin" ? "Administrador" : "Jogador"}
-                </span>
+                <label className="membership-control">Tipo de jogador
+ <select aria-label={'Tipo de '+p.display_name} value={p.membership??'guest'} disabled={busy} onChange={e=>action(()=>setMembership(p,e.target.value as 'monthly'|'guest'))}>
+ <option value="guest">Convidado</option><option value="monthly">Mensalista</option>
+ </select></label>
               </div>
             ))}
           </div>
