@@ -42,7 +42,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 
 ## Data, horário e presença
 
-- Novas peladas exigem data e hora de início em Brasília (America/Sao_Paulo). O banco armazena o instante em UTC e mantém a data do ranking sincronizada.
+- Novas peladas exigem data e hora de início em João Pessoa (PB) (America/Fortaleza). O banco armazena o instante em UTC e mantém a data do ranking sincronizada.
 - Confirmações são permitidas até o início da pelada, com limite de 24. Cancelamentos são permitidos até uma hora antes, inclusive no limite exato. Quem confirma na última hora vê um aviso de que já não poderá cancelar.
 - O relógio do banco decide os prazos. Repetir a confirmação não ocupa outra vaga. Não há escrita direta de presença pelo cliente nem escolha de outro jogador.
 - Gols e assistências só podem ser lançados após o início e para participantes confirmados. Administradores continuam corrigindo desempenhos existentes de peladas encerradas.
@@ -54,7 +54,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 - O limite de 24 vale por pelada, inclusive para o administrador, e é verificado no banco com bloqueio da linha da pelada. Cadastros e ranking podem conter mais de 24 pessoas. A participação é contabilizada ao confirmar presença, sem criar desempenho nem alterar o ranking. O banco serializa as reservas na linha da pelada, impedindo mais de 24 confirmados.
 - A migração 002 remove o limite global de cadastros; a 003 permite cadastro aberto. A 004 adiciona horário e presença. Aplique somente as migrações que ainda faltam no seu banco.
 - Um registro por jogador e por pelada. Gols e assistências são totais independentes; salvar novamente substitui os valores, sem duplicá-los.
-- Nota mensal: `min(100, 50 + 3 × gols + 2 × assistências)`. Todos começam em 50 a cada mês, sem acumular nota do mês anterior. Exemplo: 10 gols e 10 assistências levam a 100; em cinco peladas, média de 2 gols e 2 assistências. Em quatro peladas, 3 gols e 2 assistências por jogo também atingem o teto. Os gols e assistências continuam sendo contabilizados depois de 100, e o desempate permanece por gols, depois assistências. Correções recalculam a nota, que pode baixar até 50. O mês usa a data da pelada. O horário de referência é America/Sao_Paulo.
+- Nota mensal: `min(100, 50 + 3 × gols + 2 × assistências)`. Todos começam em 50 a cada mês, sem acumular nota do mês anterior. Exemplo: 10 gols e 10 assistências levam a 100; em cinco peladas, média de 2 gols e 2 assistências. Em quatro peladas, 3 gols e 2 assistências por jogo também atingem o teto. Os gols e assistências continuam sendo contabilizados depois de 100, e o desempate permanece por gols, depois assistências. Correções recalculam a nota, que pode baixar até 50. O mês usa a data da pelada. O horário de referência é America/Fortaleza.
 - Desempate por gols e depois assistências. Empates finais compartilham a posição. A ordem alfabética apenas estabiliza a exibição.
 - Todos os membros podem consultar o ranking e as cartinhas. Jogadores só gravam o próprio desempenho em peladas abertas que já ocorreram e só editam seu próprio perfil/foto.
 - O administrador pode corrigir qualquer desempenho, inclusive após encerrar a pelada. Correções são auditadas em transação pelo banco. A interface mostra as últimas 100 alterações; o histórico completo permanece no banco.
@@ -80,3 +80,7 @@ Os testes executam a migração em PostgreSQL local via PGlite, com estruturas d
 ## Estado de entrega
 
 A integração está implementada, mas as contas, fotos e dados reais só funcionam depois que um projeto Supabase for criado, a migração aplicada e as variáveis configuradas. Nenhuma conta real é criada pela demonstração.
+
+## Atualização de fuso de João Pessoa
+
+Aplique `supabase/migrations/005_joao_pessoa_timezone.sql` após a 004. O aplicativo usa America/Fortaleza, que atende a Paraíba. Os horários agendados e prazos em UTC são preservados; a 005 alinha também as conversões de data no banco.

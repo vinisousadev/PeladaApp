@@ -9,7 +9,7 @@ export type Ranked=Profile&{goals:number;assists:number;points:number;played:num
 export const MONTHLY_BASE=50;
 export const MONTHLY_MAX=100;
 export function monthlyScore(goals:number,assists:number){return Math.min(MONTHLY_MAX,MONTHLY_BASE+goals*3+assists*2);}
-export function currentDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+export function currentDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Fortaleza',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 export function rankPlayers(data:ClubData,month:string,criterion:'points'|'goals'|'assists'='points'):Ranked[]{
  const ids=new Set(data.sessions.filter(s=>s.played_on.slice(0,7)===month).map(s=>s.id));
  const ranked=data.profiles.map(p=>{const rows=data.performances.filter(r=>r.player_id===p.id&&ids.has(r.session_id));const goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0);return {...p,goals,assists,points:monthlyScore(goals,assists),played:rows.length,rank:0};}).sort((a,b)=>b[criterion]-a[criterion]||b.goals-a.goals||b.assists-a.assists||a.display_name.localeCompare(b.display_name,'pt-BR'));
@@ -20,7 +20,7 @@ export function dateLabel(date:string){return new Date(date+'T12:00:00').toLocal
 export function monthLabel(month:string){return new Date(month+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});}
 
 export function startTimestamp(date:string,time:string){return new Date(date+'T'+time+':00-03:00').toISOString();}
-export function scheduleLabel(value:string){return new Date(value).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+export function scheduleLabel(value:string){return new Date(value).toLocaleString('pt-BR',{timeZone:'America/Fortaleza',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
 export function attendanceWindow(match:Match,now=Date.now()){
  const start=match.starts_at?Date.parse(match.starts_at):NaN;
  return {canConfirm:match.status==='open'&&now<start,canCancel:match.status==='open'&&now<=start-3600000,started:now>=start};

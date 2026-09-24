@@ -72,11 +72,13 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
 
  // Upgrade live-style data: old games retain their original participants and scores.
  await db.exec(readFileSync(new URL('../supabase/migrations/004_attendance.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/005_joao_pessoa_timezone.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/005_joao_pessoa_timezone.sql',import.meta.url),'utf8'));
  assert.equal((await asUser(a,'select * from public.attendances')).rows.length,25);
  await asUser(a,`update public.performances set assists=6 where session_id='${match}' and player_id='${a}'`);
  const upcoming='00000000-0000-0000-0000-000000000012';
  await asUser(admin,`insert into public.sessions(id,name,played_on,starts_at,created_by) values('${upcoming}','Próxima','2000-01-01',clock_timestamp()+interval '2 hours','${admin}')`);
- assert.equal((await db.query<{ok:boolean}>(`select played_on=(starts_at at time zone 'America/Sao_Paulo')::date as ok from public.sessions where id='${upcoming}'`)).rows[0].ok,true);
+ assert.equal((await db.query<{ok:boolean}>(`select played_on=(starts_at at time zone 'America/Fortaleza')::date as ok from public.sessions where id='${upcoming}'`)).rows[0].ok,true);
  await assert.rejects(asUser(admin,`insert into public.sessions(name,played_on,created_by) values('Sem hora','2026-01-01','${admin}')`),/data e o horário/);
  await asUser(a,`select public.set_attendance('${upcoming}',true)`);
  await asUser(a,`select public.set_attendance('${upcoming}',true)`);
