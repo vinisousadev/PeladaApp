@@ -13,3 +13,9 @@ Convidados entram na fila por ordem de inscrição; com vaga disponível, são c
 ## Cancelamento de peladas
 
 Execute o conteúdo de `supabase/migrations/008_cancel_session.sql` no SQL Editor após as migrações anteriores. Administração → Peladas → Controle das peladas → Cancelar pelada pede confirmação e permite cancelar somente antes do horário de início. A regra é validada no banco. Inscrições são preservadas como histórico, alterações ficam bloqueadas inclusive para administradores, e a pelada não conta no ranking. Para jogar novamente, crie outra pelada.
+
+## Craque da pelada
+
+Execute o conteúdo de `supabase/migrations/009_match_star.sql` no SQL Editor após as anteriores. Na Administração, escolha o craque entre os confirmados após o início da pelada. Pode corrigir ou remover a escolha, inclusive após encerrar. Peladas canceladas não exibem craque. O prêmio não altera o ranking.
+
+A carta aparece na pelada na página inicial e em Peladas. Baixar carta gera um PNG de 1080 × 1350 com foto, nome, data e gols/assistências atuais daquela pelada, no próprio navegador. Compartilhar abre o menu nativo quando suportado; nos demais navegadores, baixa a imagem. A prévia oferece um link para salvar e opção sem foto em caso de falha no carregamento.
