@@ -1150,7 +1150,7 @@ export default function Club() {
                         )
                         .filter((p): p is Profile => Boolean(p))}
                       waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={data.profiles.find(p=>p.id===s.star_player_id)}
+ star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
  starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
  meId={me.id}
  onAttendance={(confirm) => setAttendance(s, confirm)}
@@ -1292,7 +1292,7 @@ export default function Club() {
                       )
                       .filter((p): p is Profile => Boolean(p))}
                     waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={data.profiles.find(p=>p.id===s.star_player_id)}
+ star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
  starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
  meId={me.id}
  onAttendance={(confirm) => setAttendance(s, confirm)}
