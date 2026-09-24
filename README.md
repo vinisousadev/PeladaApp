@@ -1,6 +1,6 @@
 # Pelada Club
 
-Aplicativo em Next.js, TypeScript, Tailwind CSS e Supabase para um clube com jogadores fixos e convidados, sem limite fixo de cadastros e com até 24 participantes por pelada. Inclui login com senha, recuperação de acesso, cadastro por lista de e-mails, fotos em cartinhas, gols e assistências por pelada, ranking mensal, administração e histórico de alterações.
+Aplicativo em Next.js, TypeScript, Tailwind CSS e Supabase para um clube com jogadores fixos e convidados, sem limite fixo de cadastros e com até 24 participantes por pelada. Inclui login com senha, recuperação de acesso, cadastro aberto com confirmação de e-mail, fotos em cartinhas, gols e assistências por pelada, ranking mensal, administração e histórico de alterações.
 
 ## Rodar localmente
 
@@ -17,12 +17,12 @@ No PowerShell, copie com `Copy-Item .env.example .env.local`. Sem configuração
 ## Ativar o Supabase
 
 1. Crie um projeto no Supabase. Guarde a senha do banco fora do código.
-2. Em SQL Editor, execute `supabase/migrations/001_pelada_club.sql` e depois `supabase/migrations/002_capacity_per_session.sql`, nessa ordem, **uma única vez em um projeto vazio**. Não aplique em um projeto que já tenha outros usuários ou tabelas com estes nomes. O gatilho de cadastro restringe novos usuários à turma.
-3. Antes de criar a primeira conta, execute o SQL abaixo substituindo o e-mail pelo seu e o nome por seu nome. Essa linha libera seu acesso como administrador.
+2. Em um projeto vazio, execute as migrações 001, 002 e 003, nessa ordem. Para atualizar este projeto existente (001 e 002 já aplicadas), execute somente o conteúdo de `supabase/migrations/003_open_signup.sql`. A 003 abre o cadastro sem alterar contas, fotos, desempenhos ou administradores existentes.
+3. Em um projeto novo, cadastre sua conta e confirme o e-mail. Depois, no SQL Editor, atribua o papel de administrador somente à sua conta:
 
 ```sql
-insert into public.roster_slots (email, display_name, role)
-values ('SEU_EMAIL_EM_MINUSCULAS', 'Vinicius', 'admin');
+update public.profiles set role='admin'
+where id=(select id from auth.users where lower(email)='SEU_EMAIL_EM_MINUSCULAS');
 ```
 
 4. Em Authentication → URL Configuration, configure a URL final do aplicativo como Site URL e permita os redirecionamentos para `http://localhost:3000/`, `http://localhost:3000/?recover=1`, a URL publicada com `/` e a URL publicada com `/?recover=1`.
@@ -37,13 +37,13 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 **Nunca coloque senha do banco, secret key ou service_role em uma variável NEXT_PUBLIC.** O aplicativo só precisa da chave pública; o banco aplica as permissões.
 
 7. Reinicie o desenvolvimento ou refaça o build para aplicar as variáveis. São valores de build em uma exportação estática, não variáveis que mudam automaticamente após publicar.
-8. Use Primeiro acesso para cadastrar sua conta com o e-mail do passo 3 e confirme o e-mail. Entre e abra Administração → Acessos para liberar os demais jogadores e convidados, sem limite fixo de cadastros. Cada pessoa define sua senha. Liberar um e-mail não envia convite automaticamente.
+8. Use Criar conta e preencha nome, e-mail e senha. Cada jogador confirma seu e-mail e entra diretamente, sem aprovação. Novos cadastros sempre recebem o papel de jogador; metadados enviados pelo cliente não concedem administração.
 9. Crie a primeira pelada. Faça o teste com duas contas: uma registra seus totais, a outra vê o ranking atualizado e não consegue editar o desempenho alheio. Faça uma correção como administrador e confira o histórico.
 
 ## Comportamento
 
 - O limite de 24 vale por pelada, inclusive para o administrador, e é verificado no banco com bloqueio da linha da pelada. Cadastros e ranking podem conter mais de 24 pessoas. A participação é contabilizada ao salvar o desempenho, inclusive 0 gols e 0 assistências. Quem já tem registro pode continuar corrigindo seus totais quando o jogo está aberto, mesmo lotado.
-- Em projetos que já receberam a migração 001, aplique somente a 002; ela remove o limite de cadastros sem apagar usuários ou desempenhos existentes.
+- A migração 002 remove o limite global de cadastros; a 003 permite cadastro aberto. Aplique somente as migrações que ainda faltam no seu banco.
 - Um registro por jogador e por pelada. Gols e assistências são totais independentes; salvar novamente substitui os valores, sem duplicá-los.
 - Nota mensal: `min(100, 50 + 3 × gols + 2 × assistências)`. Todos começam em 50 a cada mês, sem acumular nota do mês anterior. Exemplo: 10 gols e 10 assistências levam a 100; em cinco peladas, média de 2 gols e 2 assistências. Em quatro peladas, 3 gols e 2 assistências por jogo também atingem o teto. Os gols e assistências continuam sendo contabilizados depois de 100, e o desempate permanece por gols, depois assistências. Correções recalculam a nota, que pode baixar até 50. O mês usa a data da pelada. O horário de referência é America/Sao_Paulo.
 - Desempate por gols e depois assistências. Empates finais compartilham a posição. A ordem alfabética apenas estabiliza a exibição.

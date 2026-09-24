@@ -6,7 +6,7 @@ import {PGlite} from '@electric-sql/pglite';
 test('PostgreSQL permissions, closed games, capacity and audit survive direct API-equivalent queries',async()=>{
  const db=new PGlite();
  await db.exec(`create role anon;create role authenticated;create schema auth;create schema storage;
- create table auth.users(id uuid primary key,email text);
+ create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb);
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  grant usage on schema auth,public,storage to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;
  create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
@@ -18,11 +18,18 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await db.exec(readFileSync(new URL('../supabase/migrations/002_capacity_per_session.sql',import.meta.url),'utf8'));
  const admin='00000000-0000-0000-0000-000000000001',a='00000000-0000-0000-0000-000000000002',b='00000000-0000-0000-0000-000000000003';
  await db.exec(`insert into public.roster_slots(email,display_name,role) values('admin@example.com','Admin','admin'),('a@example.com','Player A','player'),('b@example.com','Player B','player');
- insert into auth.users values('${admin}','admin@example.com'),('${a}','a@example.com'),('${b}','b@example.com');`);
+ insert into auth.users(id,email) values('${admin}','admin@example.com'),('${a}','a@example.com'),('${b}','b@example.com');`);
  await assert.rejects(db.exec(`insert into auth.users values(gen_random_uuid(),'outsider@example.com')`),/Cadastro restrito/);
+ await db.exec(readFileSync(new URL('../supabase/migrations/003_open_signup.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/003_open_signup.sql',import.meta.url),'utf8'));
+ const outsider='00000000-0000-0000-0002-000000000001';
+ await db.exec(`insert into auth.users(id,email,raw_user_meta_data) values('${outsider}','outsider@example.com','{"display_name":"  Convidado  ","role":"admin"}')`);
+ assert.deepEqual((await db.query(`select display_name,role from public.profiles where id='${outsider}'`)).rows,[{display_name:'Convidado',role:'player'}]);
+ assert.deepEqual((await db.query(`select role from public.profiles where id='${admin}'`)).rows,[{role:'admin'}]);
  const match='00000000-0000-0000-0000-000000000010';
  async function asUser(id:string,sql:string){await db.exec(`begin;set local role authenticated;set local "request.jwt.claim.sub"='${id}';`);try{const result=await db.query(sql);await db.exec('commit');return result;}catch(e){await db.exec('rollback');throw e;}}
  await asUser(admin,`insert into public.sessions(id,name,played_on,created_by) values('${match}','Pelada teste','2026-01-01','${admin}')`);
+ await assert.rejects(asUser(outsider,`insert into public.sessions(name,played_on,created_by) values('Hack','2026-01-01','${outsider}')`));
  await assert.rejects(asUser(a,`insert into public.sessions(name,played_on,created_by) values('Hack','2026-01-01','${a}')`));
  await assert.rejects(asUser(a,`update public.profiles set role='admin' where id='${a}'`));
  await asUser(a,`update public.profiles set display_name='Jogador A' where id='${a}'`);
@@ -50,7 +57,7 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await db.exec(`begin;set local role anon;`);await assert.rejects(db.query('select * from public.performances'));await db.exec('rollback');
  await asUser(admin,`insert into public.roster_slots(email,display_name) select 'player'||n||'@example.com','Player '||n from generate_series(4,30) n`);
  await db.exec(`insert into auth.users(id,email) select ('00000000-0000-0000-0001-'||lpad(n::text,12,'0'))::uuid,'player'||n||'@example.com' from generate_series(4,30) n`);
- assert.equal((await asUser(admin,'select * from public.profiles')).rows.length,30);
+ assert.equal((await asUser(admin,'select * from public.profiles')).rows.length,31);
  await asUser(admin,`update public.sessions set status='open' where id='${match}'`);
  await asUser(admin,`insert into public.performances(session_id,player_id) select '${match}',id from public.profiles where id<>'${a}' order by id limit 23`);
  assert.equal((await asUser(admin,`select * from public.performances where session_id='${match}'`)).rows.length,24);
