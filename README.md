@@ -23,3 +23,5 @@ A carta aparece na pelada na página inicial e em Peladas. Baixar carta gera um 
 A carta do craque também inclui posição e pontos no ranking geral do mês da pelada, respeitando os desempates existentes. O mês e o horário de geração (João Pessoa) aparecem no PNG. A classificação usa os dados carregados mais recentes, não uma posição congelada na data do jogo. Alterações de números ou posição invalidam a prévia anterior. Não exige nova migração.
 
 A exportação do craque agora renderiza o mesmo componente PlayerCard usado no perfil e no ranking, com foto original, posição e zoom salvos. O PNG é capturado em resolução 3×; a carta mostra os números mensais, enquanto o rodapé identifica os gols e assistências da pelada. A moldura, gradientes e tipografia são compartilhados, evitando diferenças de enquadramento causadas pelo antigo desenho em canvas.
+
+O craque agora aparece como botão compacto na pelada. A carta e as opções de exportar ficam em uma janela com fechamento por botão ou Escape. A versão especial usa borda dourada, selo de destaque e fundo preto/dourado no PNG, preservando a foto e os ajustes do perfil. Sem nova migração.
