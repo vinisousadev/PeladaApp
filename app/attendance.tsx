@@ -1,10 +1,10 @@
 'use client';
 import {useEffect,useState} from 'react';
-import {attendanceWindow,currentDate,dateLabel,scheduleLabel,type Match,type Performance,type Profile} from '@/lib/model';
+import {attendanceWindow,currentDate,dateLabel,scheduleLabel,type Match,type Performance,type Ranked,type Profile} from '@/lib/model';
 import {MatchStar} from './match-star';
 import {friendlyError} from '@/lib/supabase';
 
-export function MatchRow({match,performance,onClick,isAdmin,participants,confirmed,waiting,meId,star,starPerformance,onAttendance}:{star?:Profile;starPerformance?:Performance;waiting:Profile[];meId:string;participants:Profile[];confirmed:boolean;match:Match;performance?:Performance;onClick:()=>void;isAdmin:boolean;onAttendance:(confirm:boolean)=>Promise<void>}){
+export function MatchRow({match,performance,onClick,isAdmin,participants,confirmed,waiting,meId,star,starPerformance,onAttendance}:{star?:Ranked;starPerformance?:Performance;waiting:Profile[];meId:string;participants:Profile[];confirmed:boolean;match:Match;performance?:Performance;onClick:()=>void;isAdmin:boolean;onAttendance:(confirm:boolean)=>Promise<void>}){
  const [now,setNow]=useState(Date.now()),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[]);
  const window=attendanceWindow(match,now),full=participants.length>=24;
