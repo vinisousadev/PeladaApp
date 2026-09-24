@@ -4,6 +4,13 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(e.message?.includes('sessions_status_check'))return 'Execute a migração 008 no Supabase para ativar o cancelamento de peladas.';
+ if(e.message?.includes('antes do início'))return 'Só é possível cancelar a pelada antes do início. Confira o horário.';
+ if(e.message?.includes('pelada foi cancelada'))return 'Esta pelada foi cancelada. Crie outra pelada para jogar novamente.';
+ if(e.message?.includes('24 mensalistas'))return 'O clube já tem 24 mensalistas. Altere um deles para convidado primeiro.';
+ if(e.message?.includes('set_membership')||e.message?.includes('membership'))return 'Execute a migração 007 no Supabase para ativar mensalistas e a lista de espera.';
+ if(e.message?.includes('fora da lista de espera'))return 'Você precisa estar confirmado, fora da lista de espera, para registrar o desempenho.';
+ if(e.message?.includes('Apenas o administrador'))return 'Só o administrador pode alterar mensalistas.';
  if(e.message?.includes('cancelamento encerrou'))return 'O prazo para cancelar terminou uma hora antes do início.';
  if(e.message?.includes('confirmações encerraram'))return 'As confirmações encerraram no início da pelada.';
  if(e.message?.includes('definir o horário'))return 'O organizador precisa definir o horário da pelada.';
