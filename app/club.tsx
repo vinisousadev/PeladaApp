@@ -45,6 +45,7 @@ import {
   type Profile,
   type Ranked,
 } from "@/lib/model";
+import { StarEditor } from "./match-star";
 import { MatchRow, ScheduleEditor } from "./attendance";
 import { demoData } from "@/lib/demo";
 
@@ -721,7 +722,15 @@ export default function Club() {
     }
     setNotice("Data e horário atualizados.");
   }
-  async function cancelMatch(match: Match) {
+  async function saveStar(match: Match, playerId: string|null) {
+ if(demo){
+ if(match.status==='cancelled')throw Error('Esta pelada foi cancelada');
+ if(playerId && !data.attendances.some(a=>a.session_id===match.id&&a.player_id===playerId&&a.status!=='waiting'))throw Error('O craque precisa ser um participante confirmado.');
+ setData(d=>({...d,sessions:d.sessions.map(s=>s.id===match.id?{...s,star_player_id:playerId}:s)}));
+ }else{const {data:changed,error}=await getSupabase()!.from('sessions').update({star_player_id:playerId}).eq('id',match.id).select();if(error)throw error;await load();if(!changed?.length)throw Error('conflict');}
+ setNotice(playerId?'Craque escolhido! A carta está disponível na pelada.':'Destaque removido da pelada.');
+ }
+ async function cancelMatch(match: Match) {
  if(!match.starts_at || Date.now()>=Date.parse(match.starts_at)) throw Error('Só é possível cancelar a pelada antes do início');
  if(demo) setData(d=>({...d,sessions:d.sessions.map(s=>s.id===match.id?{...s,status:'cancelled' as const}:s)}));
  else {
@@ -1141,6 +1150,8 @@ export default function Club() {
                         )
                         .filter((p): p is Profile => Boolean(p))}
                       waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ star={data.profiles.find(p=>p.id===s.star_player_id)}
+ starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
  meId={me.id}
  onAttendance={(confirm) => setAttendance(s, confirm)}
                       match={s}
@@ -1281,6 +1292,8 @@ export default function Club() {
                       )
                       .filter((p): p is Profile => Boolean(p))}
                     waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ star={data.profiles.find(p=>p.id===s.star_player_id)}
+ starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
  meId={me.id}
  onAttendance={(confirm) => setAttendance(s, confirm)}
                     match={s}
@@ -1337,6 +1350,7 @@ export default function Club() {
               createMatch={createMatch}
               toggleMatch={toggleMatch}
               cancelMatch={cancelMatch}
+              saveStar={saveStar}
               scheduleMatch={scheduleMatch}
  setMembership={setMembership}
               onEdit={(session, player) => setEditing({ session, player })}
@@ -1763,6 +1777,7 @@ function Admin({
   createMatch,
   toggleMatch,
   cancelMatch,
+  saveStar,
   scheduleMatch,
   onEdit,
 }: {
@@ -1773,6 +1788,7 @@ function Admin({
   scheduleMatch: (s: Match, d: string, t: string) => Promise<void>;
   toggleMatch: (s: Match) => Promise<void>;
   cancelMatch: (s: Match) => Promise<void>;
+  saveStar: (s: Match,id: string|null) => Promise<void>;
   onEdit: (s: Match, p: Profile) => void;
 }) {
   const [name, setName] = useState("Pelada de quinta"),
@@ -1944,6 +1960,7 @@ function Admin({
                     : "Reabrir registros"}
                 </button>
                 <CancelSession session={s} save={cancelMatch}/>
+ <StarEditor match={s} save={saveStar} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id&&a.status!=='waiting'))}/>
               </div>
             ))}
             <p className="muted">
