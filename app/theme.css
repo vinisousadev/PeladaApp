@@ -126,3 +126,16 @@ button.primary:hover:not(:disabled){background:#ffe45c;color:#111;box-shadow:0 6
 .star-poster footer span,.star-poster footer small{color:#bdbdbd}
 @media(max-width:900px){.sidebar nav>button.active{box-shadow:none;border-bottom-color:#ffd000;background:#252525}}
 button.primary:disabled,.primary:disabled{background:#2a2a2a;color:#929292;border-color:#414141;box-shadow:none;opacity:1}
+
+/* Export-only typography: readable at sharing size, with no blurred filter layers. */
+.star-poster .champion-frame,.star-poster .football-card{filter:none}
+.star-poster .card-identity h3,.star-poster .card-rating,.star-poster .card-edition{text-shadow:none}
+.star-poster header>span{font-size:12px;letter-spacing:2px}
+.star-poster .card-identity>span{font-size:11px;letter-spacing:.08em;color:#e0e0e0}
+.star-poster .card-stats span{font-size:11px;letter-spacing:.03em;color:#e0e0e0}
+.star-poster .card-edition{font-size:11px;letter-spacing:0}
+.star-poster .champion-seal{font-size:11px;width:210px;letter-spacing:.5px}
+.star-poster .poster-rank span{font-size:12px;letter-spacing:.3px}
+.star-poster footer strong{font-size:14px}
+.star-poster footer span{font-size:12px;line-height:1.5;color:#dedede}
+.star-poster footer small{font-size:10px;color:#c4c4c4}
