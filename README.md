@@ -17,7 +17,7 @@ No PowerShell, copie com `Copy-Item .env.example .env.local`. Sem configuração
 ## Ativar o Supabase
 
 1. Crie um projeto no Supabase. Guarde a senha do banco fora do código.
-2. Em um projeto vazio, execute as migrações 001, 002 e 003, nessa ordem. Para atualizar este projeto existente (001 e 002 já aplicadas), execute somente o conteúdo de `supabase/migrations/003_open_signup.sql`. A 003 abre o cadastro sem alterar contas, fotos, desempenhos ou administradores existentes.
+2. Em um projeto vazio, execute as migrações 001, 002, 003 e 004, nessa ordem. Para atualizar este projeto existente com a migração 003 já aplicada, execute somente o conteúdo de `supabase/migrations/004_attendance.sql`. A 003 abre o cadastro sem alterar contas, fotos, desempenhos ou administradores existentes.
 3. Em um projeto novo, cadastre sua conta e confirme o e-mail. Depois, no SQL Editor, atribua o papel de administrador somente à sua conta:
 
 ```sql
@@ -40,10 +40,19 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 8. Use Criar conta e preencha nome, e-mail e senha. Cada jogador confirma seu e-mail e entra diretamente, sem aprovação. Novos cadastros sempre recebem o papel de jogador; metadados enviados pelo cliente não concedem administração.
 9. Crie a primeira pelada. Faça o teste com duas contas: uma registra seus totais, a outra vê o ranking atualizado e não consegue editar o desempenho alheio. Faça uma correção como administrador e confira o histórico.
 
+## Data, horário e presença
+
+- Novas peladas exigem data e hora de início em Brasília (America/Sao_Paulo). O banco armazena o instante em UTC e mantém a data do ranking sincronizada.
+- Confirmações são permitidas até o início da pelada, com limite de 24. Cancelamentos são permitidos até uma hora antes, inclusive no limite exato. Quem confirma na última hora vê um aviso de que já não poderá cancelar.
+- O relógio do banco decide os prazos. Repetir a confirmação não ocupa outra vaga. Não há escrita direta de presença pelo cliente nem escolha de outro jogador.
+- Gols e assistências só podem ser lançados após o início e para participantes confirmados. Administradores continuam corrigindo desempenhos existentes de peladas encerradas.
+- A migração preserva como confirmados os jogadores que já tinham desempenho. Horários antigos ficam pendentes: Administração → Peladas → Controle das peladas → Definir data e horário. Nenhum horário é presumido.
+- O administrador pode alterar o horário; isso atualiza o prazo de cancelamento, preservando confirmações.
+
 ## Comportamento
 
-- O limite de 24 vale por pelada, inclusive para o administrador, e é verificado no banco com bloqueio da linha da pelada. Cadastros e ranking podem conter mais de 24 pessoas. A participação é contabilizada ao salvar o desempenho, inclusive 0 gols e 0 assistências. Quem já tem registro pode continuar corrigindo seus totais quando o jogo está aberto, mesmo lotado.
-- A migração 002 remove o limite global de cadastros; a 003 permite cadastro aberto. Aplique somente as migrações que ainda faltam no seu banco.
+- O limite de 24 vale por pelada, inclusive para o administrador, e é verificado no banco com bloqueio da linha da pelada. Cadastros e ranking podem conter mais de 24 pessoas. A participação é contabilizada ao confirmar presença, sem criar desempenho nem alterar o ranking. O banco serializa as reservas na linha da pelada, impedindo mais de 24 confirmados.
+- A migração 002 remove o limite global de cadastros; a 003 permite cadastro aberto. A 004 adiciona horário e presença. Aplique somente as migrações que ainda faltam no seu banco.
 - Um registro por jogador e por pelada. Gols e assistências são totais independentes; salvar novamente substitui os valores, sem duplicá-los.
 - Nota mensal: `min(100, 50 + 3 × gols + 2 × assistências)`. Todos começam em 50 a cada mês, sem acumular nota do mês anterior. Exemplo: 10 gols e 10 assistências levam a 100; em cinco peladas, média de 2 gols e 2 assistências. Em quatro peladas, 3 gols e 2 assistências por jogo também atingem o teto. Os gols e assistências continuam sendo contabilizados depois de 100, e o desempate permanece por gols, depois assistências. Correções recalculam a nota, que pode baixar até 50. O mês usa a data da pelada. O horário de referência é America/Sao_Paulo.
 - Desempate por gols e depois assistências. Empates finais compartilham a posição. A ordem alfabética apenas estabiliza a exibição.

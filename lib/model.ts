@@ -1,9 +1,10 @@
 export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';photo_path:string|null;photo_y:number;photo_url?:string};
-export type Match={id:string;name:string;played_on:string;status:'open'|'closed';created_by:string};
+export type Match={id:string;name:string;played_on:string;starts_at?:string|null;status:'open'|'closed';created_by:string};
 export type Performance={id:string;session_id:string;player_id:string;goals:number;assists:number;revision:number;updated_at:string};
+export type Attendance={session_id:string;player_id:string;confirmed_at:string};
 export type Slot={email:string;display_name:string;role:'player'|'admin'};
 export type Audit={id:number;actor_id:string;performance_id:string;action:string;created_at:string;old_values:Performance|null;new_values:Performance};
-export type ClubData={profiles:Profile[];sessions:Match[];performances:Performance[];slots:Slot[];audit:Audit[]};
+export type ClubData={profiles:Profile[];sessions:Match[];performances:Performance[];attendances:Attendance[];slots:Slot[];audit:Audit[]};
 export type Ranked=Profile&{goals:number;assists:number;points:number;played:number;rank:number};
 export const MONTHLY_BASE=50;
 export const MONTHLY_MAX=100;
@@ -17,3 +18,10 @@ export function rankPlayers(data:ClubData,month:string,criterion:'points'|'goals
 export function validTotals(goals:number,assists:number){return [goals,assists].every(n=>Number.isInteger(n)&&n>=0&&n<=99);}
 export function dateLabel(date:string){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});}
 export function monthLabel(month:string){return new Date(month+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});}
+
+export function startTimestamp(date:string,time:string){return new Date(date+'T'+time+':00-03:00').toISOString();}
+export function scheduleLabel(value:string){return new Date(value).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+export function attendanceWindow(match:Match,now=Date.now()){
+ const start=match.starts_at?Date.parse(match.starts_at):NaN;
+ return {canConfirm:match.status==='open'&&now<start,canCancel:match.status==='open'&&now<=start-3600000,started:now>=start};
+}

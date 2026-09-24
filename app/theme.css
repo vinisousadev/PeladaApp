@@ -52,3 +52,13 @@ button.primary:hover:not(:disabled){background:linear-gradient(140deg,#fff09b,#f
 
 .full-ranking-link{margin-top:12px}.complete-ranking .ranking-table td{padding-top:16px;padding-bottom:16px}.complete-ranking .ranking-table td:first-child button{min-height:38px}.complete-ranking .ranking-table th:not(:first-child){min-width:45px}
 @media(max-width:650px){.sidebar nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.sidebar nav>button{min-width:0}.complete-ranking .ranking-table td:first-child button>span:last-child{overflow-wrap:anywhere}.complete-ranking .you-label{display:block;width:fit-content;margin:3px 0 0}}
+
+.attendance-card{margin:16px 0;border:1px solid #e8c54830;border-radius:16px;background:linear-gradient(120deg,#24221b,#141414 60%);overflow:hidden}
+.attendance-card .match-row{margin:0;border:0;background:transparent;flex-wrap:wrap}
+.attendance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.attendance-details{padding:0 22px 18px}.attendance-details p{font-size:13px;line-height:1.6;margin:0 0 10px}
+.attendance-details summary,.schedule-editor summary{cursor:pointer;color:#f7d657;font-size:14px;padding:8px 0}
+.confirmed-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;list-style:none;padding:0}
+.confirmed-list li{padding:8px 12px;background:#ffffff08;border-radius:8px;font-size:14px}
+.schedule-editor{max-width:440px}.schedule-editor form{padding:10px 0}.schedule-editor label{display:block;margin-bottom:12px}.schedule-editor input{width:100%}
+@media(max-width:600px){.attendance-actions{width:100%;margin:12px 0 0}.attendance-actions button{flex:1;font-size:12px}.attendance-card .match-info{min-width:0;flex:1}.attendance-details{padding:0 14px 16px}.admin-session{flex-wrap:wrap;gap:12px}}

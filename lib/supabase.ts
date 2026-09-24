@@ -4,6 +4,13 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(e.message?.includes('cancelamento encerrou'))return 'O prazo para cancelar terminou uma hora antes do início.';
+ if(e.message?.includes('confirmações encerraram'))return 'As confirmações encerraram no início da pelada.';
+ if(e.message?.includes('definir o horário'))return 'O organizador precisa definir o horário da pelada.';
+ if(e.message?.includes('Confirme sua presença'))return 'Confirme a presença antes de registrar o desempenho.';
+ if(e.message?.includes('após o início'))return 'Registre o desempenho somente após o início da pelada.';
+ if(e.message?.includes('Já existe desempenho'))return 'Não é possível cancelar uma participação com desempenho registrado.';
+ if(e.code==='PGRST205'||e.code==='PGRST202'||e.code==='42703')return 'O banco precisa da atualização de presença. Peça ao organizador para executar a migração 004.';
  if(e.code==='23505')return 'Esse registro já existe. Atualize a página para ver os dados atuais.';
  if(e.message?.includes('Invalid login'))return 'E-mail ou senha incorretos.';
  if(e.message?.includes('Email not confirmed'))return 'Confirme seu e-mail antes de entrar.';
