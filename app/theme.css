@@ -1,0 +1,54 @@
+/* Pelada Club: charcoal surfaces, golden lighting and metallic player cards. */
+:root{--bg:#0b0b0b;--surface:#1a1a1a;--surface-2:#262626;--text:#f6f6f6;--muted:#b0b0b0;--line:#353535;--accent:#fbde69;--gold:#ededed;--highlight:#d8b320;--highlight-bright:#f4d03f;--highlight-soft:#fdefb7}
+body{background:radial-gradient(ellipse at 90% 0%,#9f831420,transparent 45%),#0b0b0b}
+::selection{background:#a98c19;color:#fff}
+.app-shell{background:radial-gradient(ellipse at 100% 20%,#b99b2310,transparent 48%),#101010;box-shadow:0 0 100px #0005}
+.app-header{background:linear-gradient(110deg,#202020,#141414 65%,#322c13);border-bottom:1px solid #ffffff0d;box-shadow:0 8px 28px #0003}
+.brand-icon{color:#fff;background:linear-gradient(140deg,#fbdd66,#bd9c17);box-shadow:0 4px 20px #e5c02d35,inset 0 1px 0 #ffffff60}
+.brand-muted{color:#bdbdbd}.avatar{background:linear-gradient(140deg,#433c20,#1c1c1c);border-color:#8b7b3c;color:#fdf1c2}
+.demo-bar{background:linear-gradient(100deg,#292411,#191919);border-bottom:1px solid #f3d45a26;color:#dcd9cb}
+.demo-bar strong{color:#fce99b}.sidebar{background:linear-gradient(180deg,#181818,#121212);border-color:#ffffff0c}
+.sidebar nav>button{color:#b9b9b9}.sidebar nav>button.active{color:#fce99b;background:linear-gradient(90deg,#a3881a38,#a3881a08);box-shadow:inset 3px 0 0 #f5d247,inset 0 1px 0 #ffffff06}
+.sidebar nav>button:hover:not(.active){background:#ffffff06}.mini-mark{color:#bea540}.sidebar-note{color:#a2a2a2}
+.page-top h1{color:#f5f5f5;text-shadow:0 5px 25px #0005}.eyebrow{color:#fce485}
+input,select{background:#121212;border-color:#3b3b3b;box-shadow:inset 0 2px 5px #0003;color:#f4f4f4}
+input:focus,select:focus{border-color:#e1c34b}input[type=file]::file-selector-button{background:#383321;color:#fef7dd}
+button.primary,.primary{background:linear-gradient(140deg,#dcb725,#b99710);color:#fff;border:1px solid #fbdf7066;box-shadow:inset 0 1px 0 #ffffff22,0 5px 18px #bc9b1726;text-shadow:0 1px 1px #0003}
+button.primary:hover:not(:disabled){filter:none;background:linear-gradient(140deg,#edc836,#cca818);transform:translateY(-1px);box-shadow:inset 0 1px 0 #ffffff33,0 8px 24px #dfb91f40}
+.secondary{background:linear-gradient(180deg,#292929,#1c1c1c);border-color:#4c4735;color:#f2eee0;box-shadow:inset 0 1px 0 #ffffff08}.secondary:hover:not(:disabled){border-color:#ceb44b;background:#373321}
+.auth-story{background:repeating-linear-gradient(124deg,transparent 0 75px,#fbdb5c09 76px 78px),radial-gradient(ellipse at 5% 85%,#9e831980,transparent 63%),radial-gradient(ellipse at 95% 10%,#ecc63030,transparent 50%),linear-gradient(155deg,#262626,#101010);border-color:#7e6d284d;position:relative;overflow:hidden}
+.auth-story::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 4px);opacity:.018}
+.auth-story h1 em{color:#fbde6a}.auth-story p{color:#c8c8c8}.auth-form-wrap{background:radial-gradient(ellipse at 80% 0%,#65582224,transparent 65%),#121212}
+.notice{background:linear-gradient(130deg,#232323,#1c1c1c);border-color:#514b31;color:#dcdcdc}
+.star-panel{isolation:isolate;background:repeating-linear-gradient(125deg,transparent 0 36px,#fbdd6708 37px 39px),radial-gradient(ellipse at 50% 50%,#a98f2660,transparent 65%),linear-gradient(160deg,#312b15,#161616 75%);border:1px solid #b39c4165;box-shadow:inset 0 1px 0 #fdedae29,0 14px 40px #0005,0 0 40px #d0ad210b;overflow:hidden}
+.star-panel::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 110%,#f4d03f60,transparent 47%)}
+.section-kicker{color:#fce99d;letter-spacing:.12em}.star-bottom{color:#d5cca8}
+.ranking-panel{padding:22px;border:1px solid #ffffff0c;border-radius:14px;background:linear-gradient(145deg,#242424,#161616);box-shadow:inset 0 1px 0 #ffffff07,0 14px 35px #0002}
+.segmented{background:#0f0f0f;border-color:#353535;box-shadow:inset 0 2px 5px #0005}.segmented button{color:#c4c1b3}.segmented button[aria-pressed=true]{background:linear-gradient(145deg,#b8991b,#8c7414);color:#fff;box-shadow:inset 0 1px 0 #ffffff22,0 2px 6px #0004}
+.ranking-table th{color:#a7a7a7}.ranking-table td{border-color:#ffffff0b}.ranking-table tbody tr.leader{background:linear-gradient(90deg,#d6b32620,#d6b32604)}
+.ranking-table .leader td:first-child{box-shadow:inset 2px 0 0 #eecb3e}.ranking-table td:first-child{padding-left:9px}.ranking-table td:first-child button{gap:10px}.ranking-table .leader .rank-number,.ranking-table .leader td:last-child{color:#fce587}
+.you-label{background:#685a2280;color:#fdf0bc}.ranking-rule{color:#a4a4a4}.ranking-rule b{color:#dddddd}
+.personal-strip{position:relative;background:radial-gradient(ellipse at 0% 100%,#a88d2336,transparent 65%),linear-gradient(115deg,#1e1e1e,#1a1a1a 70%);border-color:#7e6e304d;border-top-color:#f7da6550;box-shadow:0 10px 32px #0003,inset 0 1px 0 #ffffff05}
+.personal-numbers b{color:#fffbee;text-shadow:0 0 25px #f7d65025}.personal-numbers>span{color:#c4c0ae}
+.match-row{border-color:#ffffff0c}.match-date{background:linear-gradient(145deg,#484020,#1f1f1f);box-shadow:inset 0 1px 0 #fdeeb32b;border:1px solid #b59f492d;color:#d9d0ae}.match-date strong{color:#fdefb6}.status.open{color:#f5e8b2}
+.panel{background:linear-gradient(145deg,#252525,#191919);border-color:#ffffff0e;box-shadow:inset 0 1px 0 #ffffff08,0 10px 32px #0003}.badge{background:#5249235e;color:#fef3c6;border:1px solid #ad994732}.audit-icon{background:linear-gradient(135deg,#514720,#1c1c1c);color:#fce794}
+.profile-preview{background:repeating-linear-gradient(125deg,transparent 0 45px,#fbdf6f08 46px 48px),radial-gradient(ellipse at 50% 55%,#967f246b,transparent 65%),#161616;border-color:#a38f3f50;box-shadow:inset 0 1px 0 #ffffff0d}.profile-preview p{color:#cbc4a8}.upload-label{border-color:#706743;background:#1a1a1a}
+.football-card{background:linear-gradient(125deg,#fbf7e7,#a08a33 24%,#fce68e 43%,#827232 56%,#e7e0c6 78%,#7b6922);filter:drop-shadow(0 12px 16px #0006)}
+.card-inner{background:#101010}.card-photo{background:repeating-linear-gradient(125deg,transparent 0 24px,#fce17618 25px 28px),radial-gradient(ellipse at 65% 40%,#6b5d26,#131313 74%)}
+.card-photo::after{background:linear-gradient(0deg,#101010 0%,#101010bd 10%,transparent 40%),linear-gradient(90deg,#0c0c0cdd 0%,#0c0c0c70 18%,transparent 55%)}
+.card-rating{color:#fef9e5}.card-position{border-color:#edda8c59}.card-edition{color:#fbefc1}.card-initials{color:#f7e59b3d}.card-identity h3{color:#fef9e2}.card-identity>span{color:#c9c19f}.card-stats{color:#f4efd9;border-color:#cbb66257}.card-stats span{color:#c6bfa3}.roster-caption{color:#c0b794}
+.modal{background:radial-gradient(ellipse at 100% 0%,#75652330,transparent 60%),#1b1b1b;border-color:#80744280;box-shadow:0 24px 100px #000b,inset 0 1px 0 #ffffff12}.modal::backdrop{background:#070707d9}.score-inputs label{background:linear-gradient(145deg,#3a3520,#1e1e1e);border:1px solid #73694050;color:#efead4}.score-inputs input{color:#fdf1bf;background:#121212}
+.toast{background:linear-gradient(135deg,#393523,#212121);border-color:#b6a66766;color:#f8f8f8;box-shadow:0 10px 40px #0008}.toast>svg{color:#fdeba4}.success{background:#312e20;color:#fef5d1;border:1px solid #7e7242}
+.footer{border-color:#ffffff0c;color:#9b988a}.empty{border-color:#615a40;background:linear-gradient(130deg,#1f1f1f,#171717)}
+@media(max-width:900px){.sidebar nav>button.active{box-shadow:none;border-bottom-color:#f5d247;background:linear-gradient(0deg,#be9f242b,transparent)}.sidebar{background:#161616}}
+@media(max-width:650px){.ranking-panel{padding:20px 14px}.ranking-table td{padding-right:6px}.ranking-table td:first-child button{gap:7px}.ranking-panel .section-heading{gap:10px}.ranking-panel .section-heading h2{font-size:1.125rem}.star-panel{box-shadow:inset 0 1px 0 #fdedae29,0 12px 28px #0005}.auth-story h1{line-height:1.08}}
+@media(prefers-reduced-motion:reduce){button.primary:hover:not(:disabled){transform:none}}
+
+/* Yellow controls use black lettering for clear contrast. */
+:root{--accent:#ffd400;--gold:#f4da91;--highlight:#ffd400;--highlight-bright:#ffe568;--highlight-soft:#fff0b0}
+button.primary,.primary,.segmented button[aria-pressed=true],.brand-icon{background:linear-gradient(140deg,#ffe76a,#edbd00);color:#15120a;text-shadow:none;border-color:#ffe78a88}
+button.primary:hover:not(:disabled){background:linear-gradient(140deg,#fff09b,#ffd400);color:#15120a}
+::selection{background:#ffd400;color:#111}
+
+.full-ranking-link{margin-top:12px}.complete-ranking .ranking-table td{padding-top:16px;padding-bottom:16px}.complete-ranking .ranking-table td:first-child button{min-height:38px}.complete-ranking .ranking-table th:not(:first-child){min-width:45px}
+@media(max-width:650px){.sidebar nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.sidebar nav>button{min-width:0}.complete-ranking .ranking-table td:first-child button>span:last-child{overflow-wrap:anywhere}.complete-ranking .you-label{display:block;width:fit-content;margin:3px 0 0}}
