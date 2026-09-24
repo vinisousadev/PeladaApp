@@ -1,6 +1,6 @@
 # Pelada Club
 
-Aplicativo em Next.js, TypeScript, Tailwind CSS e Supabase para um clube com jogadores fixos e convidados, sem limite fixo de cadastros e com até 24 participantes por pelada. Inclui login com senha, recuperação de acesso, cadastro aberto com confirmação de e-mail, fotos em cartinhas, gols e assistências por pelada, ranking mensal, administração e histórico de alterações.
+Aplicativo em Next.js, TypeScript, Tailwind CSS e Supabase para um clube com jogadores fixos e convidados, sem limite fixo de cadastros e com até 24 participantes por pelada. Inclui login com senha, recuperação de acesso, cadastro aberto com entrada direta, fotos em cartinhas, gols e assistências por pelada, ranking mensal, administração e histórico de alterações.
 
 ## Rodar localmente
 
@@ -26,7 +26,7 @@ where id=(select id from auth.users where lower(email)='SEU_EMAIL_EM_MINUSCULAS'
 ```
 
 4. Em Authentication → URL Configuration, configure a URL final do aplicativo como Site URL e permita os redirecionamentos para `http://localhost:3000/`, `http://localhost:3000/?recover=1`, a URL publicada com `/` e a URL publicada com `/?recover=1`.
-5. Mantenha o provedor Email e o cadastro ativados, confirmação de e-mail habilitada, senha mínima de 8 caracteres. Configure SMTP próprio para enviar confirmação e recuperação de senha para a turma; o serviço de e-mail de teste do Supabase tem restrições de destinatários e limites e não deve ser tratado como entrega garantida em produção.
+5. Mantenha o provedor Email e o cadastro ativados, Confirm email desativado, senha mínima de 8 caracteres. Configure SMTP próprio para enviar confirmação e recuperação de senha para a turma; o serviço de e-mail de teste do Supabase tem restrições de destinatários e limites e não deve ser tratado como entrega garantida em produção.
 6. Copie Project URL e a chave pública publishable/anon para `.env.local`:
 
 ```dotenv
@@ -37,7 +37,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 **Nunca coloque senha do banco, secret key ou service_role em uma variável NEXT_PUBLIC.** O aplicativo só precisa da chave pública; o banco aplica as permissões.
 
 7. Reinicie o desenvolvimento ou refaça o build para aplicar as variáveis. São valores de build em uma exportação estática, não variáveis que mudam automaticamente após publicar.
-8. Use Criar conta e preencha nome, e-mail e senha. Cada jogador confirma seu e-mail e entra diretamente, sem aprovação. Novos cadastros sempre recebem o papel de jogador; metadados enviados pelo cliente não concedem administração.
+8. Use Criar conta e preencha nome, e-mail e senha. Cada jogador entra diretamente, sem confirmação de e-mail nem aprovação. Novos cadastros sempre recebem o papel de jogador; metadados enviados pelo cliente não concedem administração.
 9. Crie a primeira pelada. Faça o teste com duas contas: uma registra seus totais, a outra vê o ranking atualizado e não consegue editar o desempenho alheio. Faça uma correção como administrador e confira o histórico.
 
 ## Data, horário e presença
@@ -84,3 +84,7 @@ A integração está implementada, mas as contas, fotos e dados reais só funcio
 ## Atualização de fuso de João Pessoa
 
 Aplique `supabase/migrations/005_joao_pessoa_timezone.sql` após a 004. O aplicativo usa America/Fortaleza, que atende a Paraíba. Os horários agendados e prazos em UTC são preservados; a 005 alinha também as conversões de data no banco.
+
+## Cadastro sem confirmação de e-mail
+
+No painel Supabase, Authentication → Sign In / Providers → Email, desative Confirm email e salve. Esta é uma configuração do serviço Auth, não uma migração SQL. O cliente já aceita a sessão devolvida no cadastro e abre o clube. A recuperação de senha continua usando e-mail e depende da configuração de envio.

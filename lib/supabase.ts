@@ -12,6 +12,8 @@ export function friendlyError(error:unknown){
  if(e.message?.includes('Já existe desempenho'))return 'Não é possível cancelar uma participação com desempenho registrado.';
  if(e.code==='PGRST205'||e.code==='PGRST202'||e.code==='42703')return 'O banco precisa da atualização de presença. Peça ao organizador para executar a migração 004.';
  if(e.code==='23505')return 'Esse registro já existe. Atualize a página para ver os dados atuais.';
+ if(e.code==='user_already_exists'||e.message?.includes('User already registered'))return 'Este e-mail já tem uma conta. Volte para entrar com sua senha ou use Esqueci minha senha.';
+ if(e.code==='over_email_send_rate_limit')return 'O serviço de e-mail atingiu o limite de envio. Tente mais tarde ou avise o organizador.';
  if(e.message?.includes('Invalid login'))return 'E-mail ou senha incorretos.';
  if(e.message?.includes('Email not confirmed'))return 'Confirme seu e-mail antes de entrar.';
  if(e.message?.includes('Database error saving new user'))return 'Não foi possível criar seu perfil. Avise o organizador para verificar a configuração do cadastro.';
