@@ -567,6 +567,7 @@ export default function Club() {
     assists: number,
     previous: Performance | undefined,
   ) {
+    if (session.status === 'cancelled') throw Error('Esta pelada foi cancelada');
     if (!validTotals(goals, assists)) throw Error("invalid");
     if (
       !data.attendances.some(
@@ -720,7 +721,18 @@ export default function Club() {
     }
     setNotice("Data e horário atualizados.");
   }
-  async function toggleMatch(match: Match) {
+  async function cancelMatch(match: Match) {
+ if(!match.starts_at || Date.now()>=Date.parse(match.starts_at)) throw Error('Só é possível cancelar a pelada antes do início');
+ if(demo) setData(d=>({...d,sessions:d.sessions.map(s=>s.id===match.id?{...s,status:'cancelled' as const}:s)}));
+ else {
+ const {data:changed,error}=await getSupabase()!.from('sessions').update({status:'cancelled'}).eq('id',match.id).eq('status',match.status).select();
+ if(error) throw error;
+ await load();
+ if(!changed?.length) throw Error('conflict');
+ }
+ setNotice('Pelada cancelada. Inscrições e registros estão bloqueados.');
+ }
+ async function toggleMatch(match: Match) {
     try {
       const status = match.status === "open" ? "closed" : "open";
       if (demo)
@@ -1324,6 +1336,7 @@ export default function Club() {
               month={month}
               createMatch={createMatch}
               toggleMatch={toggleMatch}
+              cancelMatch={cancelMatch}
               scheduleMatch={scheduleMatch}
  setMembership={setMembership}
               onEdit={(session, player) => setEditing({ session, player })}
@@ -1749,6 +1762,7 @@ function Admin({
   month,
   createMatch,
   toggleMatch,
+  cancelMatch,
   scheduleMatch,
   onEdit,
 }: {
@@ -1758,6 +1772,7 @@ function Admin({
   createMatch: (n: string, d: string, t: string) => Promise<void>;
   scheduleMatch: (s: Match, d: string, t: string) => Promise<void>;
   toggleMatch: (s: Match) => Promise<void>;
+  cancelMatch: (s: Match) => Promise<void>;
   onEdit: (s: Match, p: Profile) => void;
 }) {
   const [name, setName] = useState("Pelada de quinta"),
@@ -1895,7 +1910,7 @@ function Admin({
             </div>
             <button
               className="secondary"
-              disabled={!selected || !player || busy}
+              disabled={!selected || selected.status === 'cancelled' || !player || busy}
               onClick={() => onEdit(selected, player)}
             >
               Editar gols e assistências
@@ -1911,23 +1926,24 @@ function Admin({
                     {s.starts_at
                       ? scheduleLabel(s.starts_at) + " · João Pessoa (PB)"
                       : dateLabel(s.played_on) + " · Horário pendente"}{" "}
-                    · {s.status === "open" ? "Aberta" : "Encerrada"}
+                    · {s.status === 'cancelled' ? 'Cancelada' : s.status === "open" ? "Aberta" : "Encerrada"}
                   </p>
-                  <ScheduleEditor
+                  {s.status !== 'cancelled' && <ScheduleEditor
                     key={s.id + (s.starts_at ?? "")}
                     session={s}
                     save={scheduleMatch}
-                  />
+                  />}
                 </div>
                 <button
                   className="secondary"
-                  disabled={busy}
+                  disabled={busy || s.status === 'cancelled'}
                   onClick={() => action(() => toggleMatch(s))}
                 >
-                  {s.status === "open"
+                  {s.status === 'cancelled' ? 'Pelada cancelada' : s.status === "open"
                     ? "Encerrar registros"
                     : "Reabrir registros"}
                 </button>
+                <CancelSession session={s} save={cancelMatch}/>
               </div>
             ))}
             <p className="muted">
@@ -2018,4 +2034,12 @@ function Admin({
       )}
     </section>
   );
+}
+
+function CancelSession({session,save}:{session:Match;save:(s:Match)=>Promise<void>}){
+ const [confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[now,setNow]=useState(Date.now());
+ useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[]);
+ if(session.status==='cancelled')return null;
+ const allowed=Boolean(session.starts_at)&&now<Date.parse(session.starts_at!);
+ return <div className="cancel-session">{confirm?<div role="group" aria-label={'Cancelar '+session.name}><p>Cancelar <strong>{session.name}</strong>? As inscrições serão bloqueadas. Para jogar novamente, será necessário criar outra pelada.</p><button className="primary" disabled={busy||!allowed} onClick={async()=>{setBusy(true);setError('');try{await save(session);setConfirm(false);}catch(e){setError(friendlyError(e));}finally{setBusy(false);}}}>{busy?'Cancelando…':'Sim, cancelar pelada'}</button><button className="secondary" disabled={busy} onClick={()=>setConfirm(false)}>Manter pelada</button></div>:<button className="secondary" disabled={!allowed} onClick={()=>setConfirm(true)}>Cancelar pelada</button>}{!allowed&&<small>Disponível somente antes do início, com horário definido.</small>}{error&&<p className="error" role="alert">{error}</p>}</div>;
 }

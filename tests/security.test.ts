@@ -151,5 +151,16 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await asUser(admin,`select public.set_membership('${a}','guest')`);
  assert.equal(await state(a),'confirmed');
  assert.equal((await db.query(`select * from public.attendances where session_id='${queued}' and status='confirmed'`)).rows.length,24);
+ await db.exec(readFileSync(new URL('../supabase/migrations/008_cancel_session.sql',import.meta.url),'utf8'));
+ assert.equal((await asUser(a,`update public.sessions set status='cancelled' where id='${queued}' returning id`)).rows.length,0);
+ await assert.rejects(asUser(admin,`update public.sessions set status='cancelled' where id='${upcoming}'`),/antes do início/);
+ await asUser(admin,`update public.sessions set status='cancelled' where id='${queued}'`);
+ assert.equal((await db.query<{status:string}>(`select status from public.sessions where id='${queued}'`)).rows[0].status,'cancelled');
+ assert.equal((await db.query(`select * from public.attendances where session_id='${queued}' and status='confirmed'`)).rows.length,24);
+ await assert.rejects(asUser(a,`select public.set_attendance('${queued}',false)`),/encerrada/);
+ await assert.rejects(asUser(admin,`update public.sessions set status='open' where id='${queued}'`),/cancelada/);
+ await assert.rejects(asUser(admin,`update public.sessions set starts_at=clock_timestamp()+interval '3 hours' where id='${queued}'`),/cancelada/);
+ await assert.rejects(asUser(admin,`insert into public.performances(session_id,player_id) values('${queued}','${a}')`),/cancelada/);
  await db.close();
 });
+

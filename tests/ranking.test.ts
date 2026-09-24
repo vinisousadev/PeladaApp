@@ -14,6 +14,8 @@ test('Monthly rank handles assists, ties, zero stats and repeated saves',()=>{
  ranks=rankPlayers(data,'2026-09');assert.equal(ranks[0].points,100);assert.equal(ranks[1].points,100);assert.equal(ranks[0].id,'0');
  data.performances[0]={...data.performances[0],goals:0,assists:0};assert.equal(rankPlayers(data,'2026-09').find(p=>p.id==='0')?.points,50);
  assert.equal(validTotals(0,99),true);assert.equal(validTotals(-1,0),false);assert.equal(validTotals(1.5,0),false);assert.equal(validTotals(NaN,1),false);
+ data.sessions[0].status='cancelled';
+ assert.ok(rankPlayers(data,'2026-09').every(p=>p.points===50&&p.goals===0&&p.assists===0&&p.played===0));
 });
 test('A score of 100 is attainable in four or five games and never exceeded',()=>{
  assert.equal(monthlyScore(0,0),50);
