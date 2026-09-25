@@ -13,17 +13,18 @@ export function CardFrame({level}: {level: number}) {
         <stop offset=".45" stopColor="#fff1a0"/><stop offset=".65" stopColor="#e8ae00"/>
         <stop offset=".85" stopColor="#ffe94a"/><stop offset="1" stopColor="#fff9cf"/>
       </linearGradient></defs>
-      <polygon points={outline} fill="none" stroke={`url(#${id})`} strokeWidth={level >= 90 ? 3 : level >= 80 ? 2 : 1.3} vectorEffect="non-scaling-stroke"/>
-      {level >= 70 && <svg x="2" y="1.4" width="96" height="97.2" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polygon points={outline} fill="none" stroke="#ffe65a" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
-      </svg>}
-      {level >= 70 && <g fill={`url(#${id})`}>
-        <path d="M1 10 L8 8.8 L3 12 L1 20 Z M99 10 L92 8.8 L97 12 L99 20 Z M1 80 L3 86 L10 91 L1 87 Z M99 80 L97 86 L90 91 L99 87 Z"/>
-      </g>}
+      {/* Concentric strokes share one contour; scaling a second polygon misaligns corners. */}
+      <g fill="none" strokeLinejoin="round">
+        <polygon points={outline} stroke={`url(#${id})`} strokeWidth={level >= 90 ? 6 : level >= 70 ? 4.5 : 1.8} vectorEffect="non-scaling-stroke"/>
+        {level >= 70 && <>
+          <polygon points={outline} stroke="#503700" strokeWidth={level >= 90 ? 3.4 : 2.4} vectorEffect="non-scaling-stroke"/>
+          <polygon points={outline} stroke="#ffe65a" strokeWidth={level >= 90 ? 1.5 : 1} vectorEffect="non-scaling-stroke"/>
+        </>}
+      </g>
       {level >= 90 && <g fill={`url(#${id})`} stroke="#fff5b0" strokeWidth=".25">
-        <path d="M0 25 L2 32 L0 39 L-1 32 Z M100 25 L102 32 L100 39 L98 32 Z M0 66 L2 73 L0 80 L-1 73 Z M100 66 L102 73 L100 80 L98 73 Z M16 6 L28 0 L22 4 Z M72 0 L84 6 L78 4 Z M14 94 L28 97 L21 96.5 Z M72 97 L86 94 L79 96.5 Z"/>
+        <path d="M0 25 L.9 32 L0 39 L-.9 32 Z M100 25 L100.9 32 L100 39 L99.1 32 Z M0 66 L.9 73 L0 80 L-.9 73 Z M100 66 L100.9 73 L100 80 L99.1 73 Z"/>
       </g>}
-      {level >= 80 && <g fill="#fff9d4">
+      {level >= 70 && <g fill="#fff9d4">
         <path d="M0 45 L.6 48 L2 49 L.6 50 L0 53 L-.6 50 L-2 49 L-.6 48 Z M100 57 L100.6 60 L102 61 L100.6 62 L100 65 L99.4 62 L98 61 L99.4 60 Z"/>
       </g>}
     </svg>
