@@ -139,3 +139,35 @@ button.primary:disabled,.primary:disabled{background:#2a2a2a;color:#929292;borde
 .star-poster footer strong{font-size:14px}
 .star-poster footer span{font-size:12px;line-height:1.5;color:#dedede}
 .star-poster footer small{font-size:10px;color:#c4c4c4}
+
+/* Story canvas: 360 × 640 CSS pixels, exported at 6× (2160 × 3840). */
+.star-poster{width:360px;height:640px;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;box-sizing:border-box;border:0;background:radial-gradient(ellipse at 50% 38%,#292929,transparent 64%),repeating-linear-gradient(135deg,transparent 0 48px,#ffffff04 49px 50px,transparent 51px 98px),#080808;overflow:hidden}
+.star-poster header{flex:none;width:100%;padding:0}
+.star-poster header h2{font-size:18px;margin:0 0 3px;letter-spacing:1px}
+.star-poster>.champion-frame{width:248px;flex:none;padding:4px 10px 4px}
+.star-poster .champion-frame .football-card.large{width:228px}
+.star-poster .large .card-photo{height:218px}
+.star-poster .card-inner{padding-bottom:26px}
+.star-poster .large .card-identity h3{font-size:27px;line-height:1.08;max-height:58px;overflow:hidden}
+.star-poster .card-identity>span{font-size:9px;margin-top:4px}
+.star-poster .card-stats{padding-top:8px;margin:9px 12px 0}
+.star-poster .card-stats strong{font-size:20px}
+.star-poster .card-stats span{font-size:9px}
+.star-poster .card-rating{top:33px;left:13px}
+.star-poster .large .card-rating strong{font-size:40px}
+.star-poster .champion-seal{font-size:9px;width:190px;padding:7px 8px;margin-top:-4px}
+.star-poster .poster-rank{width:100%;margin:2px 0 0;padding:10px 14px 9px;border:1px solid #ffffff20;border-left:3px solid #ffd000;border-radius:12px;background:linear-gradient(120deg,#292929,#151515);display:block;flex:none;text-align:left}
+.poster-rank-label{display:flex;align-items:center;gap:6px;color:#ffd000}
+.star-poster .poster-rank-label span{font-size:9px;font-weight:800;letter-spacing:1.3px;color:#ffd000}
+.poster-rank-values{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:5px 0 8px}
+.poster-rank-values>div{display:grid;gap:2px}
+.poster-rank-values>div+div{border-left:1px solid #ffffff20;padding-left:16px}
+.star-poster .poster-rank-values strong{font-size:31px;line-height:1.1;color:#fff;letter-spacing:-1px}
+.poster-rank-values em{font-style:normal;font-size:14px;color:#ffd000;margin-left:3px;letter-spacing:0}
+.star-poster .poster-rank-values span{font-size:8px;letter-spacing:.2px;color:#ccc}
+.poster-score-track{height:3px;border-radius:3px;background:#ffffff18;overflow:hidden}
+.poster-score-track i{display:block;height:100%;background:#ffd000}
+.star-poster .poster-rank>small{display:block;text-transform:uppercase;font-size:8px;letter-spacing:1px;color:#bbb;margin-top:6px}
+.star-poster footer{margin-top:auto;width:100%;gap:4px;flex:none}
+.star-poster footer strong{font-size:12px;line-height:1.2;max-height:30px;overflow:hidden}
+.star-poster footer span{font-size:10px;line-height:1.4}

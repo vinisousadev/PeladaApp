@@ -25,3 +25,5 @@ A carta do craque também inclui posição e pontos no ranking geral do mês da 
 A exportação do craque agora renderiza o mesmo componente PlayerCard usado no perfil e no ranking, com foto original, posição e zoom salvos. O PNG é capturado em resolução 3×; a carta mostra os números mensais, enquanto o rodapé identifica os gols e assistências da pelada. A moldura, gradientes e tipografia são compartilhados, evitando diferenças de enquadramento causadas pelo antigo desenho em canvas.
 
 O craque agora aparece como botão compacto na pelada. A carta e as opções de exportar ficam em uma janela com fechamento por botão ou Escape. A versão especial usa borda dourada, selo de destaque e fundo preto/dourado no PNG, preservando a foto e os ajustes do perfil. Sem nova migração.
+
+A exportação do craque usa formato Story 9:16 em 2160 × 3840, fundo preto sem borda externa e sem marca no topo ou data de geração. O painel de ranking destaca posição, total de jogadores do clube, pontos e progresso até 100. A moldura da carta é preservada. Sem nova migração.
