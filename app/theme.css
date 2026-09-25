@@ -176,3 +176,13 @@ button.primary:disabled,.primary:disabled{background:#2a2a2a;color:#929292;borde
 .card-photo .card-club-crest{position:static;inset:auto;display:block;width:32px;height:32px;max-width:none;margin:8px auto 0;object-fit:contain;transform:none;filter:drop-shadow(0 2px 3px #0009)}
 .club-picker{margin:0;padding:18px;border:1px solid #ffd00030;border-radius:16px;background:linear-gradient(130deg,#ffd00008,transparent 65%),#141414;display:grid;gap:14px;min-width:0}
 .club-picker legend{padding:0 6px;font-weight:700}.club-picker legend small{color:#aaa;font-weight:400;margin-left:6px}.club-picker p{margin:0;color:#aaa;font-size:13px;line-height:1.5}.club-picker label{display:grid;gap:8px}.club-choice{display:flex;align-items:center;gap:12px;padding:12px;background:#ffffff05;border-radius:12px}.club-choice img{width:40px;height:40px;object-fit:contain}.club-choice span{display:grid;gap:3px}.club-choice small{color:#aaa}.star-poster .card-photo .card-club-crest{width:28px;height:28px;margin-top:6px}
+/* Monthly evolution decorates the outside; the portrait and base dimensions stay fixed. */
+.football-card:not(.card-tier-50){clip-path:none;background:transparent}
+.football-card:not(.card-tier-50)::before{content:"";position:absolute;inset:0;clip-path:var(--card-shape);background:linear-gradient(125deg,#fff3a2,#ffd000 28%,#ffe65a 48%,#e6ad00 68%,#fff2a0);z-index:-1}
+.football-card>.evolution-trim{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:5;pointer-events:none}
+.football-card>.evolution-crown{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:35px;height:24px;z-index:6;pointer-events:none;filter:drop-shadow(0 2px 3px #0009)}
+.football-card.card-tier-80{filter:drop-shadow(0 0 6px #ffd00045) drop-shadow(0 10px 16px #0006)}
+.football-card.card-tier-90{filter:drop-shadow(0 0 8px #ffd00055) drop-shadow(0 10px 16px #0006)}
+.football-card.card-tier-100{filter:drop-shadow(0 0 10px #ffd00066) drop-shadow(0 10px 16px #0006)}
+.star-poster .football-card:not(.card-tier-50){filter:none}
+.star-poster .evolution-crown{top:-12px;width:30px;height:21px}
