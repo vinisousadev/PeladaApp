@@ -1,5 +1,6 @@
 "use client";
 
+import {ClubPicker} from "./club-picker";
 import {
   useCallback,
   useEffect,
@@ -748,6 +749,7 @@ export default function Club() {
           photo_x: profile.photo_x ?? 50,
           photo_zoom: profile.photo_zoom ?? 1,
           photo_path: path,
+          favorite_club_id: profile.favorite_club_id ?? null,
         })
         .eq("id", userId)
         .select();
@@ -1578,6 +1580,7 @@ function ProfileEditor({
 }) {
   const [name, setName] = useState(player.display_name),
     [position, setPosition] = useState(player.position),
+    [favoriteClub, setFavoriteClub] = useState(player.favorite_club_id ?? ""),
     [y, setY] = useState(player.photo_y),
     [x, setX] = useState(player.photo_x ?? 50),
     [zoom, setZoom] = useState(player.photo_zoom ?? 1),
@@ -1618,7 +1621,7 @@ function ProfileEditor({
     setError("");
     try {
       await save(
-        { ...player, display_name: name.trim(), position, photo_y: y, photo_x: x, photo_zoom: zoom },
+        { ...player, display_name: name.trim(), position, favorite_club_id: favoriteClub || null, photo_y: y, photo_x: x, photo_zoom: zoom },
         photo,
       );
       setPhoto(null);
@@ -1641,6 +1644,7 @@ function ProfileEditor({
             photo_x: x,
             photo_zoom: zoom,
             photo_url: preview,
+            favorite_club_id: favoriteClub || null,
           }}
           month={month}
           large
@@ -1672,6 +1676,7 @@ function ProfileEditor({
             ))}
           </select>
         </label>
+        <ClubPicker value={favoriteClub} onChange={setFavoriteClub} disabled={busy}/>
         <label className="upload-label">
           <Upload size={20} /> Foto do jogador
           <input

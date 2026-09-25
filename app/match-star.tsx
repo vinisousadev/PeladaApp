@@ -19,12 +19,12 @@ export function MatchStar({match,player,performance,totalPlayers}:{totalPlayers:
  const titleId=useId();
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[preview,setPreview]=useState<{url:string;name:string}|null>(null);
  useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url);},[preview]);
- useEffect(()=>setPreview(null),[totalPlayers,player.id,player.rank,player.points,player.photo_url,player.photo_x,player.photo_y,player.photo_zoom,player.display_name,performance?.goals,performance?.assists,match.played_on,match.name]);
+ useEffect(()=>setPreview(null),[totalPlayers,player.id,player.rank,player.points,player.photo_url,player.photo_x,player.photo_y,player.photo_zoom,player.favorite_club_id,player.display_name,performance?.goals,performance?.assists,match.played_on,match.name]);
  async function exportCard(share:boolean,withoutPhoto=false){setBusy(true);setError('');try{
   if(!poster.current)throw Error('A carta ainda não está pronta.');
   await document.fonts.ready;
   const clone=poster.current.cloneNode(true) as HTMLDivElement;
-  const photo=clone.querySelector('img');
+  const photo=clone.querySelector<HTMLImageElement>('.card-photo > img');
   if(photo && withoutPhoto){photo.remove();}
   else if(photo && player.photo_url){
     const response=await fetch(player.photo_url);if(!response.ok)throw Error('Não foi possível carregar a foto. Atualize a página e tente novamente.');

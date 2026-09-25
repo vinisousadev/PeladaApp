@@ -171,3 +171,8 @@ button.primary:disabled,.primary:disabled{background:#2a2a2a;color:#929292;borde
 .star-poster footer{margin-top:auto;width:100%;gap:4px;flex:none}
 .star-poster footer strong{font-size:12px;line-height:1.2;max-height:30px;overflow:hidden}
 .star-poster footer span{font-size:10px;line-height:1.4}
+
+/* Club crests retain their proportions independently of portrait framing. */
+.card-photo .card-club-crest{position:static;inset:auto;display:block;width:32px;height:32px;max-width:none;margin:8px auto 0;object-fit:contain;transform:none;filter:drop-shadow(0 2px 3px #0009)}
+.club-picker{margin:0;padding:18px;border:1px solid #ffd00030;border-radius:16px;background:linear-gradient(130deg,#ffd00008,transparent 65%),#141414;display:grid;gap:14px;min-width:0}
+.club-picker legend{padding:0 6px;font-weight:700}.club-picker legend small{color:#aaa;font-weight:400;margin-left:6px}.club-picker p{margin:0;color:#aaa;font-size:13px;line-height:1.5}.club-picker label{display:grid;gap:8px}.club-choice{display:flex;align-items:center;gap:12px;padding:12px;background:#ffffff05;border-radius:12px}.club-choice img{width:40px;height:40px;object-fit:contain}.club-choice span{display:grid;gap:3px}.club-choice small{color:#aaa}.star-poster .card-photo .card-club-crest{width:28px;height:28px;margin-top:6px}
