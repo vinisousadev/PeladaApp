@@ -187,11 +187,20 @@ button.primary:disabled,.primary:disabled{background:#2a2a2a;color:#929292;borde
 .football-card.card-tier-100{filter:drop-shadow(0 0 10px #ffd00066) drop-shadow(0 10px 16px #0006)}
 .star-poster .football-card:not(.card-tier-50){filter:none}
 .star-poster .evolution-crown{top:-12px;width:30px;height:21px}
-@font-face{font-family:'Barlow Condensed';src:url('/fonts/barlow-condensed-bold.ttf') format('truetype');font-style:normal;font-weight:700;font-display:swap}
-h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b,.poster-rank-values strong{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:700}
+@font-face{font-family:'Exo 2';src:url('/fonts/exo2-variable.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b,.poster-rank-values strong{font-family:'Exo 2',Arial,sans-serif;font-weight:700}
 .page-top h1,.auth-story h1{letter-spacing:.005em;line-height:1.05}
 .section-heading h2{font-size:1.65rem;letter-spacing:.01em}
-.card-identity h3,.large .card-identity h3{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:700;letter-spacing:.035em;line-height:1.08}
+.card-identity h3,.large .card-identity h3{font-family:'Exo 2',Arial,sans-serif;font-weight:700;letter-spacing:.035em;line-height:1.08}
 .card-rating strong{letter-spacing:0;padding-right:0;line-height:1}
-.star-poster .card-identity h3,.star-poster header h2,.star-poster .poster-rank-values strong{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:700}
+.star-poster .card-identity h3,.star-poster header h2,.star-poster .poster-rank-values strong{font-family:'Exo 2',Arial,sans-serif;font-weight:700}
 @media(max-width:650px){.section-heading h2{font-size:1.45rem}}
+
+/* Exo 2: readable UI text and stronger sporting headings. */
+body,button,input,select,textarea,.star-poster{font-family:'Exo 2',Arial,sans-serif}
+h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-weight:800}
+.sidebar nav>button{font-weight:600}
+.card-identity h3,.large .card-identity h3,.star-poster .card-identity h3{font-weight:800;letter-spacing:.01em}
+.card-rating strong{font-size:2.1rem}.large .card-rating strong{font-size:2.5rem}
+.star-poster .large .card-rating strong{font-size:34px}
+.star-poster header h2{font-size:17px;font-weight:800;letter-spacing:.3px}
