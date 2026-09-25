@@ -34,7 +34,7 @@ export function MatchStar({match,player,performance,totalPlayers}:{totalPlayers:
   }
   const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;pointer-events:none';host.appendChild(clone);document.body.appendChild(host);
   let blob:Blob|null;
-  try{blob=await toBlob(clone,{pixelRatio:6,skipFonts:true,includeQueryParams:true});}finally{host.remove();}
+  try{blob=await toBlob(clone,{pixelRatio:6,preferredFontFormat:"truetype",includeQueryParams:true});}finally{host.remove();}
   if(!blob)throw Error('Não foi possível gerar a imagem.');
   const name='craque-'+player.display_name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-')+'-'+match.played_on+'-story-hd.png';
   const file=new File([blob],name,{type:'image/png'});
