@@ -4,6 +4,7 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(e.message?.includes('favorite_club_id'))return 'Execute a migração 010 no Supabase para ativar o time do coração.';
  if(e.message?.includes('star_player_id'))return 'Execute a migração 009 no Supabase para ativar o craque da pelada.';
  if(e.message?.includes('craque'))return e.message;
  if(e.message?.includes('sessions_status_check'))return 'Execute a migração 008 no Supabase para ativar o cancelamento de peladas.';

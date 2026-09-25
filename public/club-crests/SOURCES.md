@@ -1,0 +1,236 @@
+# Escudos dos clubes
+
+Imagens oficiais de identificação dos clubes, obtidas do catálogo público da ESPN. Marcas pertencem aos respectivos titulares; sem afiliação com o aplicativo. Arquivos locais para exibição e exportação das cartas.
+
+- 1. FC Union Berlin: https://a.espncdn.com/i/teamlogos/soccer/500/598.png
+- Bayer Leverkusen: https://a.espncdn.com/i/teamlogos/soccer/500/131.png
+- Bayern Munich: https://a.espncdn.com/i/teamlogos/soccer/500/132.png
+- Borussia Dortmund: https://a.espncdn.com/i/teamlogos/soccer/500/124.png
+- Borussia Mönchengladbach: https://a.espncdn.com/i/teamlogos/soccer/500/268.png
+- Eintracht Frankfurt: https://a.espncdn.com/i/teamlogos/soccer/500/125.png
+- FC Augsburg: https://a.espncdn.com/i/teamlogos/soccer/500/3841.png
+- FC Cologne: https://a.espncdn.com/i/teamlogos/soccer/500/122.png
+- Hamburg SV: https://a.espncdn.com/i/teamlogos/soccer/500/127.png
+- Mainz: https://a.espncdn.com/i/teamlogos/soccer/500/2950.png
+- RB Leipzig: https://a.espncdn.com/i/teamlogos/soccer/500/11420.png
+- SC Freiburg: https://a.espncdn.com/i/teamlogos/soccer/500/126.png
+- SC Paderborn 07: https://a.espncdn.com/i/teamlogos/soccer/500/3307.png
+- Schalke 04: https://a.espncdn.com/i/teamlogos/soccer/500/133.png
+- SV Elversberg: https://a.espncdn.com/i/teamlogos/soccer/500/10388.png
+- TSG Hoffenheim: https://a.espncdn.com/i/teamlogos/soccer/500/7911.png
+- VfB Stuttgart: https://a.espncdn.com/i/teamlogos/soccer/500/134.png
+- Werder Bremen: https://a.espncdn.com/i/teamlogos/soccer/500/137.png
+- Aldosivi: https://a.espncdn.com/i/teamlogos/soccer/500/9739.png
+- Argentinos Juniors: https://a.espncdn.com/i/teamlogos/soccer/500/3.png
+- Atlético Tucumán: https://a.espncdn.com/i/teamlogos/soccer/500/9785.png
+- Banfield: https://a.espncdn.com/i/teamlogos/soccer/500/235.png
+- Barracas Central: https://a.espncdn.com/i/teamlogos/soccer/500/10060.png
+- Belgrano (Córdoba): https://a.espncdn.com/i/teamlogos/soccer/500/4.png
+- Boca Juniors: https://a.espncdn.com/i/teamlogos/soccer/500/5.png
+- Central Córdoba (Santiago del Estero): https://a.espncdn.com/i/teamlogos/soccer/500/11989.png
+- Defensa y Justicia: https://a.espncdn.com/i/teamlogos/soccer/500/8950.png
+- Deportivo Riestra: https://a.espncdn.com/i/teamlogos/soccer/500/17702.png
+- Estudiantes de La Plata: https://a.espncdn.com/i/teamlogos/soccer/500/8.png
+- Estudiantes de Río Cuarto: https://a.espncdn.com/i/teamlogos/soccer/500/19685.png
+- Gimnasia (Mendoza): https://a.espncdn.com/i/teamlogos/soccer/500/11972.png
+- Gimnasia La Plata: https://a.espncdn.com/i/teamlogos/soccer/500/9.png
+- Huracán: https://a.espncdn.com/i/teamlogos/soccer/500/10.png
+- Independiente: https://a.espncdn.com/i/teamlogos/soccer/500/11.png
+- Independiente Rivadavia: https://a.espncdn.com/i/teamlogos/soccer/500/9744.png
+- Instituto (Córdoba): https://a.espncdn.com/i/teamlogos/soccer/500/2975.png
+- Lanús: https://a.espncdn.com/i/teamlogos/soccer/500/12.png
+- Newell's Old Boys: https://a.espncdn.com/i/teamlogos/soccer/500/14.png
+- Platense: https://a.espncdn.com/i/teamlogos/soccer/500/7764.png
+- Racing Club: https://a.espncdn.com/i/teamlogos/soccer/500/15.png
+- River Plate: https://a.espncdn.com/i/teamlogos/soccer/500/16.png
+- Rosario Central: https://a.espncdn.com/i/teamlogos/soccer/500/17.png
+- San Lorenzo: https://a.espncdn.com/i/teamlogos/soccer/500/18.png
+- Sarmiento (Junín): https://a.espncdn.com/i/teamlogos/soccer/500/10158.png
+- Talleres (Córdoba): https://a.espncdn.com/i/teamlogos/soccer/500/19.png
+- Tigre: https://a.espncdn.com/i/teamlogos/soccer/500/7767.png
+- Unión (Santa Fe): https://a.espncdn.com/i/teamlogos/soccer/500/20.png
+- Vélez Sarsfield: https://a.espncdn.com/i/teamlogos/soccer/500/21.png
+- América Mineiro: https://a.espncdn.com/i/teamlogos/soccer/500/6154.png
+- Athletic: https://a.espncdn.com/i/teamlogos/soccer/500/20851.png
+- Athletico-PR: https://a.espncdn.com/i/teamlogos/soccer/500/3458.png
+- Atlético Goianiense: https://a.espncdn.com/i/teamlogos/soccer/500/10357.png
+- Atlético-MG: https://a.espncdn.com/i/teamlogos/soccer/500/7632.png
+- Avaí: https://a.espncdn.com/i/teamlogos/soccer/500/9966.png
+- Bahia: https://a.espncdn.com/i/teamlogos/soccer/500/9967.png
+- Botafogo: https://a.espncdn.com/i/teamlogos/soccer/500/6086.png
+- Botafogo-SP: https://a.espncdn.com/i/teamlogos/soccer/500/10281.png
+- Ceará: https://a.espncdn.com/i/teamlogos/soccer/500/9969.png
+- Chapecoense: https://a.espncdn.com/i/teamlogos/soccer/500/9318.png
+- Corinthians: https://a.espncdn.com/i/teamlogos/soccer/500/874.png
+- Coritiba: https://a.espncdn.com/i/teamlogos/soccer/500/3456.png
+- CRB: https://a.espncdn.com/i/teamlogos/soccer/500/9970.png
+- Criciúma: https://a.espncdn.com/i/teamlogos/soccer/500/9971.png
+- Cruzeiro: https://a.espncdn.com/i/teamlogos/soccer/500/2022.png
+- Cuiabá: https://a.espncdn.com/i/teamlogos/soccer/500/17313.png
+- Flamengo: https://a.espncdn.com/i/teamlogos/soccer/500/819.png
+- Fluminense: https://a.espncdn.com/i/teamlogos/soccer/500/3445.png
+- Fortaleza: https://a.espncdn.com/i/teamlogos/soccer/500/6272.png
+- Goiás: https://a.espncdn.com/i/teamlogos/soccer/500/3395.png
+- Grêmio: https://a.espncdn.com/i/teamlogos/soccer/500/6273.png
+- Internacional: https://a.espncdn.com/i/teamlogos/soccer/500/1936.png
+- Juventude: https://a.espncdn.com/i/teamlogos/soccer/500/6270.png
+- Londrina: https://a.espncdn.com/i/teamlogos/soccer/500/17333.png
+- Mirassol: https://a.espncdn.com/i/teamlogos/soccer/500/9169.png
+- Náutico: https://a.espncdn.com/i/teamlogos/soccer/500/7633.png
+- Novorizontino: https://a.espncdn.com/i/teamlogos/soccer/500/18127.png
+- Operário PR: https://a.espncdn.com/i/teamlogos/soccer/500/18187.png
+- Palmeiras: https://a.espncdn.com/i/teamlogos/soccer/500/2029.png
+- Ponte Preta: https://a.espncdn.com/i/teamlogos/soccer/500/3459.png
+- Red Bull Bragantino: https://a.espncdn.com/i/teamlogos/soccer/500/6079.png
+- Remo: https://a.espncdn.com/i/teamlogos/soccer/500/4936.png
+- Santos: https://a.espncdn.com/i/teamlogos/soccer/500/2674.png
+- São Bernardo: https://a.espncdn.com/i/teamlogos/soccer/500/11268.png
+- São Paulo: https://a.espncdn.com/i/teamlogos/soccer/500/2026.png
+- Sport: https://a.espncdn.com/i/teamlogos/soccer/500/7635.png
+- Vasco da Gama: https://a.espncdn.com/i/teamlogos/soccer/500/3454.png
+- Vila Nova: https://a.espncdn.com/i/teamlogos/soccer/500/9973.png
+- Vitória: https://a.espncdn.com/i/teamlogos/soccer/500/3457.png
+- Alavés: https://a.espncdn.com/i/teamlogos/soccer/500/96.png
+- Athletic Club: https://a.espncdn.com/i/teamlogos/soccer/500/93.png
+- Atlético Madrid: https://a.espncdn.com/i/teamlogos/soccer/500/1068.png
+- Barcelona: https://a.espncdn.com/i/teamlogos/soccer/500/83.png
+- Celta Vigo: https://a.espncdn.com/i/teamlogos/soccer/500/85.png
+- Deportivo: https://a.espncdn.com/i/teamlogos/soccer/500/90.png
+- Elche: https://a.espncdn.com/i/teamlogos/soccer/500/3751.png
+- Espanyol: https://a.espncdn.com/i/teamlogos/soccer/500/88.png
+- Getafe: https://a.espncdn.com/i/teamlogos/soccer/500/2922.png
+- Levante: https://a.espncdn.com/i/teamlogos/soccer/500/1538.png
+- Málaga: https://a.espncdn.com/i/teamlogos/soccer/500/99.png
+- Osasuna: https://a.espncdn.com/i/teamlogos/soccer/500/97.png
+- Racing Santander: https://a.espncdn.com/i/teamlogos/soccer/500/87.png
+- Rayo Vallecano: https://a.espncdn.com/i/teamlogos/soccer/500/101.png
+- Real Betis: https://a.espncdn.com/i/teamlogos/soccer/500/244.png
+- Real Madrid: https://a.espncdn.com/i/teamlogos/soccer/500/86.png
+- Real Sociedad: https://a.espncdn.com/i/teamlogos/soccer/500/89.png
+- Sevilla: https://a.espncdn.com/i/teamlogos/soccer/500/243.png
+- Valencia: https://a.espncdn.com/i/teamlogos/soccer/500/94.png
+- Villarreal: https://a.espncdn.com/i/teamlogos/soccer/500/102.png
+- Atlanta United FC: https://a.espncdn.com/i/teamlogos/soccer/500/18418.png
+- Austin FC: https://a.espncdn.com/i/teamlogos/soccer/500/20906.png
+- CF Montréal: https://a.espncdn.com/i/teamlogos/soccer/500/9720.png
+- Charlotte FC: https://a.espncdn.com/i/teamlogos/soccer/500/21300.png
+- Chicago Fire FC: https://a.espncdn.com/i/teamlogos/soccer/500/182.png
+- Colorado Rapids: https://a.espncdn.com/i/teamlogos/soccer/500/184.png
+- Columbus Crew: https://a.espncdn.com/i/teamlogos/soccer/500/183.png
+- D.C. United: https://a.espncdn.com/i/teamlogos/soccer/500/193.png
+- FC Cincinnati: https://a.espncdn.com/i/teamlogos/soccer/500/18267.png
+- FC Dallas: https://a.espncdn.com/i/teamlogos/soccer/500/185.png
+- Houston Dynamo FC: https://a.espncdn.com/i/teamlogos/soccer/500/6077.png
+- Inter Miami CF: https://a.espncdn.com/i/teamlogos/soccer/500/20232.png
+- LA Galaxy: https://a.espncdn.com/i/teamlogos/soccer/500/187.png
+- LAFC: https://a.espncdn.com/i/teamlogos/soccer/500/18966.png
+- Minnesota United FC: https://a.espncdn.com/i/teamlogos/soccer/500/17362.png
+- Nashville SC: https://a.espncdn.com/i/teamlogos/soccer/500/18986.png
+- New England Revolution: https://a.espncdn.com/i/teamlogos/soccer/500/189.png
+- New York City FC: https://a.espncdn.com/i/teamlogos/soccer/500/17606.png
+- Orlando City SC: https://a.espncdn.com/i/teamlogos/soccer/500/12011.png
+- Philadelphia Union: https://a.espncdn.com/i/teamlogos/soccer/500/10739.png
+- Portland Timbers: https://a.espncdn.com/i/teamlogos/soccer/500/9723.png
+- Real Salt Lake: https://a.espncdn.com/i/teamlogos/soccer/500/4771.png
+- Red Bull New York: https://a.espncdn.com/i/teamlogos/soccer/500/190.png
+- San Diego FC: https://a.espncdn.com/i/teamlogos/soccer/500/22529.png
+- San Jose Earthquakes: https://a.espncdn.com/i/teamlogos/soccer/500/191.png
+- Seattle Sounders FC: https://a.espncdn.com/i/teamlogos/soccer/500/9726.png
+- Sporting Kansas City: https://a.espncdn.com/i/teamlogos/soccer/500/186.png
+- St. Louis CITY SC: https://a.espncdn.com/i/teamlogos/soccer/500/21812.png
+- Toronto FC: https://a.espncdn.com/i/teamlogos/soccer/500/7318.png
+- Vancouver Whitecaps: https://a.espncdn.com/i/teamlogos/soccer/500/9727.png
+- AJ Auxerre: https://a.espncdn.com/i/teamlogos/soccer/500/172.png
+- Angers: https://a.espncdn.com/i/teamlogos/soccer/500/7868.png
+- AS Monaco: https://a.espncdn.com/i/teamlogos/soccer/500/174.png
+- Brest: https://a.espncdn.com/i/teamlogos/soccer/500/6997.png
+- Le Havre AC: https://a.espncdn.com/i/teamlogos/soccer/500/3236.png
+- Le Mans: https://a.espncdn.com/i/teamlogos/soccer/500/2697.png
+- Lens: https://a.espncdn.com/i/teamlogos/soccer/500/175.png
+- Lille: https://a.espncdn.com/i/teamlogos/soccer/500/166.png
+- Lorient: https://a.espncdn.com/i/teamlogos/soccer/500/273.png
+- Lyon: https://a.espncdn.com/i/teamlogos/soccer/500/167.png
+- Marseille: https://a.espncdn.com/i/teamlogos/soccer/500/176.png
+- Nice: https://a.espncdn.com/i/teamlogos/soccer/500/2502.png
+- Paris FC: https://a.espncdn.com/i/teamlogos/soccer/500/6851.png
+- Paris Saint-Germain: https://a.espncdn.com/i/teamlogos/soccer/500/160.png
+- Stade Rennais: https://a.espncdn.com/i/teamlogos/soccer/500/169.png
+- Strasbourg: https://a.espncdn.com/i/teamlogos/soccer/500/180.png
+- Toulouse: https://a.espncdn.com/i/teamlogos/soccer/500/179.png
+- Troyes: https://a.espncdn.com/i/teamlogos/soccer/500/170.png
+- AFC Bournemouth: https://a.espncdn.com/i/teamlogos/soccer/500/349.png
+- Arsenal: https://a.espncdn.com/i/teamlogos/soccer/500/359.png
+- Aston Villa: https://a.espncdn.com/i/teamlogos/soccer/500/362.png
+- Brentford: https://a.espncdn.com/i/teamlogos/soccer/500/337.png
+- Brighton & Hove Albion: https://a.espncdn.com/i/teamlogos/soccer/500/331.png
+- Chelsea: https://a.espncdn.com/i/teamlogos/soccer/500/363.png
+- Coventry City: https://a.espncdn.com/i/teamlogos/soccer/500/388.png
+- Crystal Palace: https://a.espncdn.com/i/teamlogos/soccer/500/384.png
+- Everton: https://a.espncdn.com/i/teamlogos/soccer/500/368.png
+- Fulham: https://a.espncdn.com/i/teamlogos/soccer/500/370.png
+- Hull City: https://a.espncdn.com/i/teamlogos/soccer/500/306.png
+- Ipswich Town: https://a.espncdn.com/i/teamlogos/soccer/500/373.png
+- Leeds United: https://a.espncdn.com/i/teamlogos/soccer/500/357.png
+- Liverpool: https://a.espncdn.com/i/teamlogos/soccer/500/364.png
+- Manchester City: https://a.espncdn.com/i/teamlogos/soccer/500/382.png
+- Manchester United: https://a.espncdn.com/i/teamlogos/soccer/500/360.png
+- Newcastle United: https://a.espncdn.com/i/teamlogos/soccer/500/361.png
+- Nottingham Forest: https://a.espncdn.com/i/teamlogos/soccer/500/393.png
+- Sunderland: https://a.espncdn.com/i/teamlogos/soccer/500/366.png
+- Tottenham Hotspur: https://a.espncdn.com/i/teamlogos/soccer/500/367.png
+- AC Milan: https://a.espncdn.com/i/teamlogos/soccer/500/103.png
+- AS Roma: https://a.espncdn.com/i/teamlogos/soccer/500/104.png
+- Atalanta: https://a.espncdn.com/i/teamlogos/soccer/500/105.png
+- Bologna: https://a.espncdn.com/i/teamlogos/soccer/500/107.png
+- Cagliari: https://a.espncdn.com/i/teamlogos/soccer/500/2925.png
+- Como: https://a.espncdn.com/i/teamlogos/soccer/500/2572.png
+- Fiorentina: https://a.espncdn.com/i/teamlogos/soccer/500/109.png
+- Frosinone: https://a.espncdn.com/i/teamlogos/soccer/500/4057.png
+- Genoa: https://a.espncdn.com/i/teamlogos/soccer/500/3263.png
+- Internazionale: https://a.espncdn.com/i/teamlogos/soccer/500/110.png
+- Juventus: https://a.espncdn.com/i/teamlogos/soccer/500/111.png
+- Lazio: https://a.espncdn.com/i/teamlogos/soccer/500/112.png
+- Lecce: https://a.espncdn.com/i/teamlogos/soccer/500/113.png
+- Monza: https://a.espncdn.com/i/teamlogos/soccer/500/4007.png
+- Napoli: https://a.espncdn.com/i/teamlogos/soccer/500/114.png
+- Parma: https://a.espncdn.com/i/teamlogos/soccer/500/115.png
+- Sassuolo: https://a.espncdn.com/i/teamlogos/soccer/500/3997.png
+- Torino: https://a.espncdn.com/i/teamlogos/soccer/500/239.png
+- Udinese: https://a.espncdn.com/i/teamlogos/soccer/500/118.png
+- Venezia: https://a.espncdn.com/i/teamlogos/soccer/500/17530.png
+- ADO Den Haag: https://a.espncdn.com/i/teamlogos/soccer/500/2726.png
+- Ajax Amsterdam: https://a.espncdn.com/i/teamlogos/soccer/500/139.png
+- AZ Alkmaar: https://a.espncdn.com/i/teamlogos/soccer/500/140.png
+- Excelsior: https://a.espncdn.com/i/teamlogos/soccer/500/2566.png
+- FC Groningen: https://a.espncdn.com/i/teamlogos/soccer/500/145.png
+- FC Twente: https://a.espncdn.com/i/teamlogos/soccer/500/152.png
+- FC Utrecht: https://a.espncdn.com/i/teamlogos/soccer/500/153.png
+- Feyenoord Rotterdam: https://a.espncdn.com/i/teamlogos/soccer/500/142.png
+- Fortuna Sittard: https://a.espncdn.com/i/teamlogos/soccer/500/143.png
+- Go Ahead Eagles: https://a.espncdn.com/i/teamlogos/soccer/500/3706.png
+- Heerenveen: https://a.espncdn.com/i/teamlogos/soccer/500/146.png
+- NEC Nijmegen: https://a.espncdn.com/i/teamlogos/soccer/500/147.png
+- PEC Zwolle: https://a.espncdn.com/i/teamlogos/soccer/500/2565.png
+- PSV Eindhoven: https://a.espncdn.com/i/teamlogos/soccer/500/148.png
+- SC Cambuur: https://a.espncdn.com/i/teamlogos/soccer/500/3736.png
+- Sparta Rotterdam: https://a.espncdn.com/i/teamlogos/soccer/500/151.png
+- Telstar: https://a.espncdn.com/i/teamlogos/soccer/500/3735.png
+- Willem II: https://a.espncdn.com/i/teamlogos/soccer/500/156.png
+- Académico de Viseu: https://a.espncdn.com/i/teamlogos/soccer/500/21607.png
+- Alverca: https://a.espncdn.com/i/teamlogos/soccer/500/21613.png
+- Arouca: https://a.espncdn.com/i/teamlogos/soccer/500/15784.png
+- Benfica: https://a.espncdn.com/i/teamlogos/soccer/500/1929.png
+- Braga: https://a.espncdn.com/i/teamlogos/soccer/500/2994.png
+- C.D. Nacional: https://a.espncdn.com/i/teamlogos/soccer/500/3472.png
+- Casa Pia: https://a.espncdn.com/i/teamlogos/soccer/500/21581.png
+- Estoril: https://a.espncdn.com/i/teamlogos/soccer/500/12216.png
+- Estrela: https://a.espncdn.com/i/teamlogos/soccer/500/21610.png
+- FC Famalicao: https://a.espncdn.com/i/teamlogos/soccer/500/12698.png
+- FC Porto: https://a.espncdn.com/i/teamlogos/soccer/500/437.png
+- Gil Vicente: https://a.espncdn.com/i/teamlogos/soccer/500/3699.png
+- Maritimo: https://a.espncdn.com/i/teamlogos/soccer/500/552.png
+- Moreirense: https://a.espncdn.com/i/teamlogos/soccer/500/3696.png
+- Rio Ave: https://a.espncdn.com/i/teamlogos/soccer/500/3822.png
+- Santa Clara: https://a.espncdn.com/i/teamlogos/soccer/500/12215.png
+- Sporting CP: https://a.espncdn.com/i/teamlogos/soccer/500/2250.png
+- Vitória de Guimaraes: https://a.espncdn.com/i/teamlogos/soccer/500/5309.png

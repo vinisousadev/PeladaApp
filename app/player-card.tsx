@@ -1,3 +1,4 @@
+import {getFootballClub} from '@/lib/football-clubs';
 import {type Ranked,monthLabel,photoStyle} from '@/lib/model';
 export function PlayerCard({
   player,
@@ -8,6 +9,7 @@ export function PlayerCard({
   month: string;
   large?: boolean;
 }) {
+  const club = getFootballClub(player.favorite_club_id);
   return (
     <div
       className={`football-card ${large ? "large" : ""}`}
@@ -30,6 +32,7 @@ export function PlayerCard({
             <strong>{player.points}</strong>
             <span>PTS</span>
             <span className="card-position">{player.position}</span>
+            {club && <img className="card-club-crest" src={`/club-crests/${club.id}.png`} alt={`Escudo do ${club.name}`} title={club.name} />}
           </div>
           <span className="card-edition">PC / CLUB</span>
         </div>

@@ -1,4 +1,4 @@
-export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';membership?:'monthly'|'guest';photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
+export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';membership?:'monthly'|'guest';favorite_club_id?:string|null;photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
 export type Match={star_player_id?:string|null;id:string;name:string;played_on:string;starts_at?:string|null;status:'open'|'closed'|'cancelled';created_by:string};
 export type Performance={id:string;session_id:string;player_id:string;goals:number;assists:number;revision:number;updated_at:string};
 export type Attendance={session_id:string;player_id:string;confirmed_at:string;status?:'confirmed'|'waiting';queue_order?:number};

@@ -172,6 +172,14 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  const futureStar='00000000-0000-0000-0000-000000000014';
  await asUser(admin,`insert into public.sessions(id,name,played_on,starts_at,created_by) values('${futureStar}','Futuro','2000-01-01',clock_timestamp()+interval '2 hours','${admin}')`);
  await assert.rejects(asUser(admin,`update public.sessions set star_player_id='${b}' where id='${futureStar}'`),/após o início/);
+ await db.exec(readFileSync(new URL('../supabase/migrations/010_favorite_club.sql',import.meta.url),'utf8'));
+ assert.equal((await db.query<{favorite_club_id:string|null}>(`select favorite_club_id from public.profiles where id='${a}'`)).rows[0].favorite_club_id,null);
+ await asUser(a,`update public.profiles set favorite_club_id='819' where id='${a}'`);
+ await asUser(a,`update public.profiles set favorite_club_id='86' where id='${a}'`);
+ assert.equal((await db.query<{favorite_club_id:string}>(`select favorite_club_id from public.profiles where id='${a}'`)).rows[0].favorite_club_id,'86');
+ assert.equal((await asUser(b,`update public.profiles set favorite_club_id='819' where id='${a}' returning id`)).rows.length,0);
+ await assert.rejects(asUser(a,`update public.profiles set favorite_club_id='inventado' where id='${a}'`));
+ await asUser(a,`update public.profiles set favorite_club_id=null where id='${a}'`);
  await db.close();
 });
 
