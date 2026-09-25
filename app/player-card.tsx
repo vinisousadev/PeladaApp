@@ -1,4 +1,6 @@
 import {getFootballClub} from '@/lib/football-clubs';
+import {cardTier} from '@/lib/card-tier';
+import {CardFrame} from './card-frame';
 import {type Ranked,monthLabel,photoStyle} from '@/lib/model';
 export function PlayerCard({
   player,
@@ -10,11 +12,13 @@ export function PlayerCard({
   large?: boolean;
 }) {
   const club = getFootballClub(player.favorite_club_id);
+  const tier = cardTier(player.points);
   return (
     <div
-      className={`football-card ${large ? "large" : ""}`}
-      aria-label={`Carta de ${player.display_name}: ${player.points} pontos`}
+      className={`football-card card-tier-${tier.level} ${large ? "large" : ""}`}
+      aria-label={`Carta de ${player.display_name}: ${player.points} pontos, ${tier.name}`}
     >
+      <CardFrame level={tier.level}/>
       <div className="card-inner">
         <div className="card-photo">
           {player.photo_url ? (
