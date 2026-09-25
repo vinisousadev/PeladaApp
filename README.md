@@ -30,3 +30,9 @@ A exportação do craque usa formato Story 9:16 em 2160 × 3840, fundo preto sem
 
 ### Time do coração
 Execute o conteúdo de `supabase/migrations/010_favorite_club.sql` no SQL Editor após as migrações anteriores. A seleção é opcional em Minha carta e aparece também na imagem do craque. Catálogo: `lib/football-clubs.json`. Escudos e fontes: `public/club-crests/SOURCES.md`. Novos clubes exigem atualizar a restrição do banco em nova migração.
+
+## Pagamentos
+
+Execute uma vez o conteúdo de `supabase/migrations/011_payments.sql` no SQL Editor após as migrações anteriores. A aba Pagamentos lista os mensalistas e permite que cada um envie o próprio comprovante; administradores também podem registrar e revisar pagamentos em nome deles.
+
+Os comprovantes ficam em um bucket privado, são normalizados para WebP no navegador e limitados a 3 MB e 20 megapixels. Quando o navegador suporta leitura de QR, a interface procura um payload Pix oficial, mas o resultado é apenas preliminar: todo envio permanece como “Aguardando confirmação” até a revisão da organização. Valores, imagens e situação detalhada são visíveis somente para o próprio jogador e administradores.
