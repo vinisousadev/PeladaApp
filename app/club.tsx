@@ -26,6 +26,7 @@ import {
   Trophy,
   Upload,
   Users,
+  WalletCards,
   X,
 } from "lucide-react";
 import { configured, friendlyError, getSupabase } from "@/lib/supabase";
@@ -42,13 +43,20 @@ import {
   type Audit,
   type ClubData,
   type Match,
+  type Payment,
   type Performance,
   type Profile,
   type Ranked,
 } from "@/lib/model";
+import {
+  validatePaymentProof,
+  validPaymentAmount,
+  type PixAnalysis,
+} from "@/lib/payments";
 import { PlayerCard } from "./player-card";
 import { StarEditor } from "./match-star";
 import { MatchRow, ScheduleEditor } from "./attendance";
+import { PaymentsView } from "./payments";
 import { demoData } from "@/lib/demo";
 
 const EMPTY: ClubData = {
@@ -56,6 +64,7 @@ const EMPTY: ClubData = {
   sessions: [],
   performances: [],
   attendances: [],
+  payments: [],
   slots: [],
   audit: [],
 };
@@ -63,6 +72,7 @@ type View =
   | "overview"
   | "ranking"
   | "matches"
+  | "payments"
   | "players"
   | "profile"
   | "admin";
@@ -415,6 +425,7 @@ export default function Club() {
             .order("played_on", { ascending: false }),
           sb.from("performances").select("*"),
           sb.from("attendances").select("*"),
+          sb.from("payments").select("*").order("submitted_at", { ascending: false }),
         ]);
         for (const r of results) if (r.error) throw r.error;
         const profiles = (results[0].data ?? []) as Profile[];
@@ -429,6 +440,19 @@ export default function Club() {
           profiles.forEach((p) => {
             p.photo_url =
               urls?.find((u) => u.path === p.photo_path)?.signedUrl ??
+              undefined;
+          });
+        }
+        const payments = (results[4].data ?? []) as Payment[];
+        const proofPaths = payments.map((payment) => payment.proof_path);
+        if (proofPaths.length) {
+          const { data: urls, error } = await sb.storage
+            .from("payment-proofs")
+            .createSignedUrls(proofPaths, 900);
+          if (error) throw error;
+          payments.forEach((payment) => {
+            payment.proof_url =
+              urls?.find((url) => url.path === payment.proof_path)?.signedUrl ??
               undefined;
           });
         }
@@ -455,6 +479,7 @@ export default function Club() {
           sessions: results[1].data ?? [],
           performances: results[2].data ?? [],
           attendances: results[3].data ?? [],
+          payments,
           slots,
           audit,
         });
@@ -576,6 +601,110 @@ export default function Club() {
       await load();
     }
     setNotice("Desempenho salvo. O ranking já foi atualizado.");
+  }
+  async function submitPayment(
+    player: Profile,
+    paymentMonth: string,
+    amount: number,
+    proof: File,
+    analysis: PixAnalysis,
+  ) {
+    if (player.membership !== "monthly")
+      throw Error("O pagamento é exclusivo para mensalistas.");
+    if (!validPaymentAmount(amount)) throw Error("Valor de pagamento inválido.");
+    validatePaymentProof(proof);
+    const previous = data.payments.find(
+      (payment) =>
+        payment.player_id === player.id &&
+        payment.payment_month.slice(0, 7) === paymentMonth,
+    );
+    if (previous?.status === "confirmed")
+      throw Error("Este pagamento já foi confirmado.");
+    if (previous?.status === "pending")
+      throw Error("Este pagamento já aguarda confirmação.");
+
+    if (demo) {
+      const payment: Payment = {
+        id: previous?.id ?? crypto.randomUUID(),
+        player_id: player.id,
+        payment_month: `${paymentMonth}-01`,
+        amount,
+        proof_path: `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`,
+        proof_url: await fileAsDataURL(proof),
+        status: "pending",
+        pix_analysis: analysis,
+        submitted_by: me!.id,
+        submitted_at: new Date().toISOString(),
+        reviewed_by: null,
+        reviewed_at: null,
+      };
+      setData((current) => ({
+        ...current,
+        payments: [
+          ...current.payments.filter((item) => item.id !== payment.id),
+          payment,
+        ],
+      }));
+    } else {
+      const sb = getSupabase()!;
+      const path = `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`;
+      const { error: uploadError } = await sb.storage
+        .from("payment-proofs")
+        .upload(path, proof, {
+          contentType: "image/webp",
+          cacheControl: "3600",
+          upsert: false,
+        });
+      if (uploadError) throw uploadError;
+      const { error: saveError } = await sb.rpc("submit_payment", {
+        p_player_id: player.id,
+        p_month: `${paymentMonth}-01`,
+        p_amount: amount,
+        p_proof_path: path,
+        p_pix_analysis: analysis,
+      });
+      if (saveError) {
+        await sb.storage.from("payment-proofs").remove([path]);
+        throw saveError;
+      }
+      if (previous?.proof_path)
+        await sb.storage.from("payment-proofs").remove([previous.proof_path]);
+      await load();
+    }
+    setNotice("Pagamento enviado. Agora ele aguarda confirmação da organização.");
+  }
+  async function reviewPayment(
+    payment: Payment,
+    status: "confirmed" | "rejected",
+  ) {
+    if (!isAdmin) throw Error("Apenas o administrador pode revisar pagamentos.");
+    if (demo) {
+      setData((current) => ({
+        ...current,
+        payments: current.payments.map((item) =>
+          item.id === payment.id
+            ? {
+                ...item,
+                status,
+                reviewed_by: me!.id,
+                reviewed_at: new Date().toISOString(),
+              }
+            : item,
+        ),
+      }));
+    } else {
+      const { error } = await getSupabase()!.rpc("review_payment", {
+        p_payment_id: payment.id,
+        p_status: status,
+      });
+      if (error) throw error;
+      await load();
+    }
+    setNotice(
+      status === "confirmed"
+        ? "Pagamento confirmado."
+        : "Revisão solicitada; o mensalista já pode reenviar o comprovante.",
+    );
   }
   async function setMembership(player: Profile, membership: 'monthly' | 'guest') {
  if(demo){
@@ -807,6 +936,7 @@ export default function Club() {
     { id: "overview", label: "Visão geral", icon: Trophy },
     { id: "ranking", label: "Ranking", icon: ClipboardList },
     { id: "matches", label: "Peladas", icon: Goal },
+    { id: "payments", label: "Pagamentos", icon: WalletCards },
     { id: "players", label: "Elenco", icon: Users },
     { id: "profile", label: "Minha carta", icon: Shirt },
     ...(isAdmin
@@ -905,6 +1035,8 @@ export default function Club() {
                   ? "NA ORGANIZAÇÃO"
                   : view === "profile"
                     ? "SUA IDENTIDADE"
+                    : view === "payments"
+                      ? "EM DIA COM A RESENHA"
                     : "TEMPORADA DO CLUBE"}
               </span>
               <h1>
@@ -914,6 +1046,8 @@ export default function Club() {
                     ? "O ranking da turma."
                     : view === "matches"
                       ? "Dentro de campo."
+                      : view === "payments"
+                        ? "Mensalidade sem complicação."
                       : view === "players"
                         ? "Nosso elenco."
                         : view === "profile"
@@ -922,9 +1056,11 @@ export default function Club() {
               </h1>
             </div>
             <label className="month-picker">
-              Mês do ranking
+              {view === "payments" ? "Mês do pagamento" : "Mês do ranking"}
               <input
-                aria-label="Mês do ranking"
+                aria-label={
+                  view === "payments" ? "Mês do pagamento" : "Mês do ranking"
+                }
                 type="month"
                 value={month}
                 onChange={(e) => {
@@ -1260,6 +1396,17 @@ export default function Club() {
                 />
               )}
             </section>
+          )}
+          {view === "payments" && (
+            <PaymentsView
+              profiles={data.profiles}
+              payments={data.payments}
+              month={month}
+              me={me}
+              isAdmin={isAdmin}
+              submit={submitPayment}
+              review={reviewPayment}
+            />
           )}
           {view === "players" && (
             <section>

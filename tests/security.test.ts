@@ -180,6 +180,28 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  assert.equal((await asUser(b,`update public.profiles set favorite_club_id='819' where id='${a}' returning id`)).rows.length,0);
  await assert.rejects(asUser(a,`update public.profiles set favorite_club_id='inventado' where id='${a}'`));
  await asUser(a,`update public.profiles set favorite_club_id=null where id='${a}'`);
+ await db.exec(readFileSync(new URL('../supabase/migrations/011_payments.sql',import.meta.url),'utf8'));
+ const paymentPath=`${b}/2026-09/00000000-0000-4000-8000-000000000001.webp`;
+ await asUser(b,`insert into storage.objects(bucket_id,name) values('payment-proofs','${paymentPath}')`);
+ await assert.rejects(asUser(a,`insert into storage.objects(bucket_id,name) values('payment-proofs','${b}/2026-09/invasao-00000000-0000-0000-0000-000000000002.webp')`));
+ await assert.rejects(asUser(outsider,`insert into storage.objects(bucket_id,name) values('payment-proofs','${outsider}/2026-09/convidado-00000000-0000-0000-0000-000000000003.webp')`));
+ await assert.rejects(asUser(b,`insert into public.payments(player_id,payment_month,amount,proof_path,submitted_by) values('${b}','2026-09-01',50,'${paymentPath}','${b}')`));
+ await assert.rejects(asUser(a,`select public.submit_payment('${b}','2026-09-01',50,'${paymentPath}','detected')`),/próprio pagamento/);
+ await assert.rejects(asUser(b,`select public.submit_payment('${b}','2026-09-01',0,'${paymentPath}','detected')`),/Valor de pagamento inválido/);
+ await assert.rejects(asUser(b,`select public.submit_payment('${b}','2026-09-01',50,'${a}/2026-09/outro-00000000-0000-0000-0000-000000000004.webp','detected')`),/Caminho do comprovante inválido/);
+ await asUser(b,`select public.submit_payment('${b}','2026-09-01',50,'${paymentPath}','detected')`);
+ assert.equal((await asUser(b,`select * from public.payments where player_id='${b}'`)).rows.length,1);
+ assert.equal((await asUser(a,`select * from public.payments where player_id='${b}'`)).rows.length,0);
+ assert.equal((await asUser(admin,`select * from public.payments where player_id='${b}'`)).rows.length,1);
+ assert.equal((await asUser(b,`select * from storage.objects where name='${paymentPath}'`)).rows.length,1);
+ assert.equal((await asUser(a,`select * from storage.objects where name='${paymentPath}'`)).rows.length,0);
+ await assert.rejects(asUser(b,`select public.review_payment((select id from public.payments where player_id='${b}'),'confirmed')`),/administrador/);
+ await asUser(admin,`select public.review_payment((select id from public.payments where player_id='${b}'),'confirmed')`);
+ assert.equal(((await asUser(b,`select status from public.payments where player_id='${b}'`)).rows[0] as {status:string}).status,'confirmed');
+ const secondPath=`${b}/2026-09/00000000-0000-4000-8000-000000000005.webp`;
+ await asUser(b,`insert into storage.objects(bucket_id,name) values('payment-proofs','${secondPath}')`);
+ await assert.rejects(asUser(b,`select public.submit_payment('${b}','2026-09-01',55,'${secondPath}','unverified')`),/já foi confirmado/);
+ assert.deepEqual((await db.query(`select public,file_size_limit::text,allowed_mime_types from storage.buckets where id='payment-proofs'`)).rows,[{public:false,file_size_limit:'3145728',allowed_mime_types:['image/webp']}]);
  await db.close();
 });
 
