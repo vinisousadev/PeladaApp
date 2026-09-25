@@ -12,6 +12,7 @@
     "@supabase/supabase-js": "2.117.1",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.468.0",
+    "motion": "^13.4.4",
     "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
