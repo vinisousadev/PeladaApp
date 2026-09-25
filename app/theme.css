@@ -204,3 +204,15 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .card-rating strong{font-size:2.1rem}.large .card-rating strong{font-size:2.5rem}
 .star-poster .large .card-rating strong{font-size:34px}
 .star-poster header h2{font-size:17px;font-weight:800;letter-spacing:.3px}
+/* Animate only decorative layers; exports use a static PlayerCard. */
+.card-shimmer{position:absolute;inset:0;clip-path:var(--card-shape);overflow:hidden;z-index:7;pointer-events:none}
+.card-shimmer::after{content:"";position:absolute;inset:-30% -90%;background:linear-gradient(115deg,transparent 42%,#fff4ad05 46%,#fff7cf3d 50%,#ffd0000d 54%,transparent 58%);transform:translateX(-55%);animation:card-reflection 7s ease-in-out infinite;animation-play-state:paused}
+.football-card[data-motion="active"] .card-shimmer::after{animation-play-state:running}
+.football-card[data-motion="static"] .card-shimmer{visibility:hidden}
+.football-card[data-motion="active"]:is(.card-tier-70,.card-tier-80,.card-tier-90,.card-tier-100)>.evolution-trim{animation:card-border-breathe 4s ease-in-out infinite}
+@keyframes card-reflection{0%,35%{transform:translateX(-55%);opacity:0}40%{opacity:1}65%{transform:translateX(55%);opacity:1}70%,100%{transform:translateX(55%);opacity:0}}
+@keyframes card-border-breathe{0%,100%{opacity:1}50%{opacity:.72}}
+.star-poster .football-card{transform:none!important;animation:none!important}
+.star-poster .evolution-trim{animation:none!important;opacity:1!important}
+.star-poster .card-shimmer{display:none!important}
+@media(prefers-reduced-motion:reduce){.football-card .card-shimmer{display:none}.football-card>.evolution-trim{animation:none!important}.football-card{transform:none!important}}
