@@ -210,7 +210,7 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .football-card[data-motion="active"] .card-shimmer::after{animation-play-state:running}
 .football-card[data-motion="static"] .card-shimmer{visibility:hidden}
 .football-card[data-motion="active"]:is(.card-tier-70,.card-tier-80,.card-tier-90,.card-tier-100)>.evolution-trim{animation:card-border-breathe 4s ease-in-out infinite}
-@keyframes card-reflection{0%,35%{transform:translateX(-55%);opacity:0}39%{opacity:1}60%{transform:translateX(55%);opacity:1}64%,100%{transform:translateX(55%);opacity:0}}
+@keyframes card-reflection{0%,35%{transform:translateX(-55%);opacity:0}38%{opacity:1}50%{transform:translateX(55%);opacity:1}53%,100%{transform:translateX(55%);opacity:0}}
 @keyframes card-border-breathe{0%,100%{opacity:1}50%{opacity:.72}}
 .star-poster .football-card{transform:none!important;animation:none!important}
 .star-poster .evolution-trim{animation:none!important;opacity:1!important}
