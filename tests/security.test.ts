@@ -230,6 +230,26 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await assert.rejects(asUser(admin,`select public.set_membership_and_attendance('${outsider}','monthly')`),/24 mensalistas/);
  await asUser(admin,`select public.set_membership_and_attendance('${a}','guest')`);
  assert.equal((await db.query<{status:string}>(`select status from public.attendances where session_id='${futureStar}' and player_id='${a}'`)).rows[0]?.status,'confirmed');
+ await db.exec(readFileSync(new URL('../supabase/migrations/013_delete_closed_session.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/013_delete_closed_session.sql',import.meta.url),'utf8'));
+ await assert.rejects(asUser(a,`select public.delete_closed_session('${upcoming}')`),/administrador/);
+ await db.exec('begin;set local role anon;');await assert.rejects(db.query(`select public.delete_closed_session('${upcoming}')`));await db.exec('rollback');
+ await assert.rejects(asUser(admin,`select public.delete_closed_session('${futureStar}')`),/encerradas/);
+ await assert.rejects(asUser(admin,`select public.delete_closed_session('${queued}')`),/encerradas/);
+ await assert.rejects(asUser(admin,`delete from public.sessions where id='${upcoming}'`));
+ const preservedScores=(await db.query(`select * from public.performances where session_id<>'${upcoming}' order by id`)).rows;
+ const preservedPayments=(await db.query(`select * from public.payments order by id`)).rows;
+ const deletedScores=(await db.query<{id:string}>(`select id from public.performances where session_id='${upcoming}'`)).rows;
+ assert.ok(deletedScores.length>0);
+ assert.ok((await db.query(`select * from public.audit_log where performance_id='${deletedScores[0].id}'`)).rows.length>0);
+ await asUser(admin,`select public.delete_closed_session('${upcoming}')`);
+ assert.equal((await db.query(`select * from public.sessions where id='${upcoming}'`)).rows.length,0);
+ assert.equal((await db.query(`select * from public.performances where session_id='${upcoming}'`)).rows.length,0);
+ assert.equal((await db.query(`select * from public.attendances where session_id='${upcoming}'`)).rows.length,0);
+ for(const score of deletedScores)assert.equal((await db.query(`select * from public.audit_log where performance_id='${score.id}'`)).rows.length,0);
+ assert.deepEqual((await db.query(`select * from public.performances where session_id<>'${upcoming}' order by id`)).rows,preservedScores);
+ assert.deepEqual((await db.query(`select * from public.payments order by id`)).rows,preservedPayments);
+ await assert.rejects(asUser(admin,`select public.delete_closed_session('${upcoming}')`),/não encontrada/);
  await db.close();
 });
 

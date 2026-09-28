@@ -37,6 +37,10 @@ Execute `supabase/migrations/012_monthly_open_sessions.sql` no SQL Editor após 
 
 Cada pelada oferece **Copiar lista de confirmados**, com todos os confirmados, suas classificações atuais, horário e totais. A fila de espera não é incluída. Se o navegador bloquear a área de transferência, a lista aparece em um campo para copiar manualmente. Peladas canceladas são identificadas no texto como histórico.
 
+## Excluir pelada encerrada
+
+Execute `supabase/migrations/013_delete_closed_session.sql` no SQL Editor após as anteriores. Administração → Controle das peladas exibe **Excluir pelada** somente para peladas encerradas, com confirmação explícita. A exclusão é permanente: remove a partida, presenças, desempenhos e histórico de alterações desses desempenhos. As cartas e o ranking passam a considerar somente os jogos restantes. Perfis, pagamentos e outras peladas são preservados. O banco limita a ação a administradores e revalida o encerramento sob bloqueio, inclusive se outro administrador reabrir a partida antes da confirmação. Não é necessário excluir nem recriar jogadores.
+
 ## Pagamentos
 
 Execute uma vez o conteúdo de `supabase/migrations/011_payments.sql` no SQL Editor após as migrações anteriores. A aba Pagamentos lista os mensalistas e permite que cada um envie o próprio comprovante; administradores também podem registrar e revisar pagamentos em nome deles.

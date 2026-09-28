@@ -1,6 +1,8 @@
 "use client";
 
 import {MatchesBoard} from "./matches-board";
+import {DeleteSession} from "./delete-session";
+import {removeClosedSession} from "@/lib/delete-session";
 import {ClubPicker} from "./club-picker";
 import {changeDemoMembership} from "@/lib/attendance-list";
 import {
@@ -818,6 +820,19 @@ export default function Club() {
  }
  setNotice('Pelada cancelada. Inscrições e registros estão bloqueados.');
  }
+ async function deleteMatch(match: Match) {
+  if(!isAdmin)throw Error('Apenas o administrador pode excluir peladas.');
+  if(match.status!=='closed')throw Error('Somente peladas encerradas podem ser excluídas.');
+  if(demo)setData(d=>removeClosedSession(d,match.id));
+  else {
+   const {error}=await getSupabase()!.rpc('delete_closed_session',{p_session_id:match.id});
+   if(error)throw error;
+   setData(d=>removeClosedSession(d,match.id));
+   await load();
+  }
+  setEditing(null);
+  setNotice('Pelada excluída. As participações, gols e assistências foram retirados das cartas e do ranking.');
+ }
  async function toggleMatch(match: Match) {
     try {
       const status = match.status === "open" ? "closed" : "open";
@@ -1401,6 +1416,7 @@ export default function Club() {
               createMatch={createMatch}
               toggleMatch={toggleMatch}
               cancelMatch={cancelMatch}
+              deleteMatch={deleteMatch}
               saveStar={saveStar}
               scheduleMatch={scheduleMatch}
  setMembership={setMembership}
@@ -1831,6 +1847,7 @@ function Admin({
   createMatch,
   toggleMatch,
   cancelMatch,
+  deleteMatch,
   saveStar,
   scheduleMatch,
   onEdit,
@@ -1842,6 +1859,7 @@ function Admin({
   scheduleMatch: (s: Match, d: string, t: string) => Promise<void>;
   toggleMatch: (s: Match) => Promise<void>;
   cancelMatch: (s: Match) => Promise<void>;
+  deleteMatch: (s: Match) => Promise<void>;
   saveStar: (s: Match,id: string|null) => Promise<void>;
   onEdit: (s: Match, p: Profile) => void;
 }) {
@@ -2014,6 +2032,7 @@ function Admin({
                     : "Reabrir registros"}
                 </button>
                 <CancelSession session={s} save={cancelMatch}/>
+                <DeleteSession session={s} save={deleteMatch} disabled={busy}/>
  <StarEditor match={s} save={saveStar} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id&&a.status!=='waiting'))}/>
               </div>
             ))}
@@ -2034,7 +2053,7 @@ function Admin({
             <p className="muted">
               Cada jogador cria a própria conta pelo site. Não é necessário
               liberar acessos. Marque até 24 mensalistas: ao promover um jogador, ele entra nas peladas abertas futuras e nas novas peladas. Sem vaga, entra na fila.
- Alterar o tipo não muda inscrições em peladas já criadas. Convidados entram por ordem de inscrição, conforme as vagas.
+ Voltar a convidado mantém as presenças existentes. Convidados entram por ordem de inscrição, conforme as vagas.
  Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
             </p>
           </div>
