@@ -1,6 +1,7 @@
 "use client";
 
 import {ClubPicker} from "./club-picker";
+import {changeDemoMembership} from "@/lib/attendance-list";
 import {
   useCallback,
   useEffect,
@@ -709,9 +710,9 @@ export default function Club() {
   async function setMembership(player: Profile, membership: 'monthly' | 'guest') {
  if(demo){
  if(membership==='monthly' && player.membership!=='monthly' && data.profiles.filter(p=>p.membership==='monthly').length>=24) throw Error('24 mensalistas');
- setData(d=>({...d,profiles:d.profiles.map(p=>p.id===player.id?{...p,membership}:p)}));
- }else{const {error}=await getSupabase()!.rpc('set_membership',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
- setNotice('Tipo de jogador atualizado. A confirmação automática vale para novas peladas.');
+ setData(d=>changeDemoMembership(d,player.id,membership));
+ }else{const {error}=await getSupabase()!.rpc('set_membership_and_attendance',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
+ setNotice(membership==='monthly'?'Mensalista atualizado. Novos mensalistas entram nas peladas abertas futuras; sem vaga, ficam na fila.':'Tipo de jogador atualizado. As presenças existentes foram mantidas.');
  }
  async function createMatch(name: string, date: string, time: string) {
     if (demo) {
@@ -2078,7 +2079,7 @@ function Admin({
             </div>
             <p className="muted">
               Cada jogador cria a própria conta pelo site. Não é necessário
-              liberar acessos. Marque até 24 mensalistas: eles entram automaticamente nas novas peladas.
+              liberar acessos. Marque até 24 mensalistas: ao promover um jogador, ele entra nas peladas abertas futuras e nas novas peladas. Sem vaga, entra na fila.
  Alterar o tipo não muda inscrições em peladas já criadas. Convidados entram por ordem de inscrição, conforme as vagas.
  Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
             </p>

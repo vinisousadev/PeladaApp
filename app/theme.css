@@ -204,6 +204,10 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .card-rating strong{font-size:2.1rem}.large .card-rating strong{font-size:2.5rem}
 .star-poster .large .card-rating strong{font-size:34px}
 .star-poster header h2{font-size:17px;font-weight:800;letter-spacing:.3px}
+.copy-confirmed{margin:12px 0;display:grid;gap:8px}
+.copy-confirmed label{display:grid;gap:8px}
+.copy-confirmed textarea{width:100%;box-sizing:border-box;background:#141414;color:#fff;border:1px solid #444;border-radius:8px;padding:12px;font:inherit;resize:vertical}
+.copy-confirmed [role="status"]{color:#ffd000;margin:0;font-size:13px}
 /* Animate only decorative layers; exports use a static PlayerCard. */
 .card-shimmer{position:absolute;inset:0;clip-path:var(--card-shape);overflow:hidden;z-index:7;pointer-events:none}
 .card-shimmer::after{content:"";position:absolute;inset:-30% -90%;background:linear-gradient(115deg,transparent 42%,#fff4ad05 46%,#fff7cf3d 50%,#ffd0000d 54%,transparent 58%);transform:translateX(-55%);animation:card-reflection 5s ease-in-out infinite;animation-play-state:paused}
