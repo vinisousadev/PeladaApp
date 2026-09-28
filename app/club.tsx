@@ -1,5 +1,6 @@
 "use client";
 
+import {MatchesBoard} from "./matches-board";
 import {ClubPicker} from "./club-picker";
 import {changeDemoMembership} from "@/lib/attendance-list";
 import {
@@ -944,9 +945,30 @@ export default function Club() {
       ? [{ id: "admin", label: "Administração", icon: ShieldCheck }]
       : []),
   ];
-  const monthlyMatches = data.sessions.filter((s) =>
-    s.played_on.startsWith(month),
-  );
+  const renderMatch = (s:Match) => (<MatchRow
+                      key={s.id}
+                      confirmed={data.attendances.some(
+                        (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
+                      )}
+                      participants={data.attendances
+                        .filter((a) => a.session_id === s.id && a.status !== "waiting")
+                        .map((a) =>
+                          data.profiles.find((p) => p.id === a.player_id),
+                        )
+                        .filter((p): p is Profile => Boolean(p))}
+                      waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
+ starTotal={data.profiles.length}
+ starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
+ meId={me.id}
+ onAttendance={(confirm) => setAttendance(s, confirm)}
+                      match={s}
+                      performance={data.performances.find(
+                        (p) => p.session_id === s.id && p.player_id === me.id,
+                      )}
+                      onClick={() => setEditing({ session: s, player: me })}
+                      isAdmin={isAdmin}
+                    />);
   return (
     <div className="app-shell">
       {demo && (
@@ -1056,7 +1078,7 @@ export default function Club() {
                           : "Tudo sob controle."}
               </h1>
             </div>
-            <label className="month-picker">
+            {view !== "matches" && <label className="month-picker">
               {view === "payments" ? "Mês do pagamento" : "Mês do ranking"}
               <input
                 aria-label={
@@ -1068,7 +1090,7 @@ export default function Club() {
                   if (e.target.value) setMonth(e.target.value);
                 }}
               />
-            </label>
+            </label>}
           </div>
           {error && (
             <div className="error-banner" role="alert">
@@ -1212,7 +1234,7 @@ export default function Club() {
               </div>
               <section className="section-space">
                 <div className="section-heading">
-                  <h2>Peladas do mês</h2>
+                  <h2>Nossa agenda</h2>
                   <button
                     className="text-button"
                     onClick={() => setView("matches")}
@@ -1220,43 +1242,7 @@ export default function Club() {
                     Ver peladas <ChevronRight size={16} />
                   </button>
                 </div>
-                {monthlyMatches.length ? (
-                  monthlyMatches.slice(0, 3).map((s) => (
-                    <MatchRow
-                      key={s.id}
-                      confirmed={data.attendances.some(
-                        (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
-                      )}
-                      participants={data.attendances
-                        .filter((a) => a.session_id === s.id && a.status !== "waiting")
-                        .map((a) =>
-                          data.profiles.find((p) => p.id === a.player_id),
-                        )
-                        .filter((p): p is Profile => Boolean(p))}
-                      waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
- starTotal={data.profiles.length}
- starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
- meId={me.id}
- onAttendance={(confirm) => setAttendance(s, confirm)}
-                      match={s}
-                      performance={data.performances.find(
-                        (p) => p.session_id === s.id && p.player_id === me.id,
-                      )}
-                      onClick={() => setEditing({ session: s, player: me })}
-                      isAdmin={isAdmin}
-                    />
-                  ))
-                ) : (
-                  <Empty
-                    title="Nenhuma pelada neste mês."
-                    text={
-                      isAdmin
-                        ? "Crie uma pelada na Administração."
-                        : "O organizador vai adicionar os próximos jogos."
-                    }
-                  />
-                )}
+                <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
               </section>
             </>
           )}
@@ -1355,7 +1341,7 @@ export default function Club() {
             <section>
               <div className="section-heading">
                 <div>
-                  <h2>Seus gols. Seus passes.</h2>
+                  <h2>Os próximos encontros da turma.</h2>
                   <p className="muted">
                     Reserve sua vaga antes do início. Cancelamentos até uma hora
                     antes. Depois do início, registre seus gols e assistências.
@@ -1363,39 +1349,7 @@ export default function Club() {
                   </p>
                 </div>
               </div>
-              {monthlyMatches.length ? (
-                monthlyMatches.map((s) => (
-                  <MatchRow
-                    key={s.id}
-                    confirmed={data.attendances.some(
-                      (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
-                    )}
-                    participants={data.attendances
-                      .filter((a) => a.session_id === s.id && a.status !== "waiting")
-                      .map((a) =>
-                        data.profiles.find((p) => p.id === a.player_id),
-                      )
-                      .filter((p): p is Profile => Boolean(p))}
-                    waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
- starTotal={data.profiles.length}
- starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
- meId={me.id}
- onAttendance={(confirm) => setAttendance(s, confirm)}
-                    match={s}
-                    performance={data.performances.find(
-                      (p) => p.session_id === s.id && p.player_id === me.id,
-                    )}
-                    onClick={() => setEditing({ session: s, player: me })}
-                    isAdmin={isAdmin}
-                  />
-                ))
-              ) : (
-                <Empty
-                  title="Sem peladas neste mês"
-                  text="Selecione outro mês ou aguarde o organizador criar uma pelada."
-                />
-              )}
+              <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
             </section>
           )}
           {view === "payments" && (
