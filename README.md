@@ -6,7 +6,7 @@ Aplique o conteúdo de `supabase/migrations/006_photo_framing.sql` uma vez no SQ
 
 ## Mensalistas e convidados
 
-Execute uma vez o conteúdo de `supabase/migrations/007_monthly_waitlist.sql` no SQL Editor, após as anteriores. Cadastros atuais e novos começam como convidados. Em Administração → Jogadores, selecione até 24 mensalistas. Ao criar uma nova pelada, todos os mensalistas são confirmados automaticamente. Alterar a classificação não muda inscrições existentes.
+Execute uma vez o conteúdo de `supabase/migrations/007_monthly_waitlist.sql` no SQL Editor, após as anteriores. Cadastros atuais e novos começam como convidados. Em Administração → Jogadores, selecione até 24 mensalistas. Ao criar uma nova pelada, todos os mensalistas são confirmados automaticamente. A migração 012 abaixo estende essa regra às peladas já abertas.
 
 Convidados entram na fila por ordem de inscrição; com vaga disponível, são confirmados imediatamente. Cancelamentos até uma hora antes promovem automaticamente o primeiro da fila. Reinscrição vai para o final, inclusive de mensalistas. A lista de espera não permite registrar desempenho. A aplicação atualiza os dados a cada 30 segundos e ao voltar à aba.
 
@@ -30,6 +30,12 @@ A exportação do craque usa formato Story 9:16 em 2160 × 3840, fundo preto sem
 
 ### Time do coração
 Execute o conteúdo de `supabase/migrations/010_favorite_club.sql` no SQL Editor após as migrações anteriores. A seleção é opcional em Minha carta e aparece também na imagem do craque. Catálogo: `lib/football-clubs.json`. Escudos e fontes: `public/club-crests/SOURCES.md`. Novos clubes exigem atualizar a restrição do banco em nova migração.
+
+## Mensalistas em peladas abertas e lista para copiar
+
+Execute `supabase/migrations/012_monthly_open_sessions.sql` no SQL Editor após a 011. Ao mudar de convidado para mensalista, o jogador entra em todas as peladas abertas que ainda não começaram. São respeitadas as 24 vagas e a ordem da fila: ninguém é removido para dar lugar ao novo mensalista. Inscrições existentes não são duplicadas nem perdem sua posição. Repetir o salvamento de um mensalista não desfaz cancelamentos; voltar a convidado mantém as presenças. A migração não inscreve retroativamente quem já era mensalista, para não desfazer cancelamentos anteriores.
+
+Cada pelada oferece **Copiar lista de confirmados**, com todos os confirmados, suas classificações atuais, horário e totais. A fila de espera não é incluída. Se o navegador bloquear a área de transferência, a lista aparece em um campo para copiar manualmente. Peladas canceladas são identificadas no texto como histórico.
 
 ## Pagamentos
 
