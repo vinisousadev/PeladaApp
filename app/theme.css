@@ -204,6 +204,9 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .card-rating strong{font-size:2.1rem}.large .card-rating strong{font-size:2.5rem}
 .star-poster .large .card-rating strong{font-size:34px}
 .star-poster header h2{font-size:17px;font-weight:800;letter-spacing:.3px}
+.danger-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#301a1a;border:1px solid #e06f6f70;color:#ffacac;border-radius:9px;padding:12px 16px;cursor:pointer;font:inherit;font-weight:700}
+.danger-button:hover:not(:disabled){background:#482121}.danger-button:disabled{opacity:.5;cursor:not-allowed}.danger-button:focus-visible{outline:2px solid #ffacac;outline-offset:3px}
+.delete-session-confirm{padding:16px;border:1px solid #e06f6f70;border-radius:10px;background:#211616;max-width:600px}.delete-session-confirm p{font-size:13px;line-height:1.6;color:#e0c5c5}.delete-session-actions{display:flex;gap:10px;flex-wrap:wrap}
 .matches-board{display:grid;gap:24px}
 .next-match{border:1px solid #ffd00070;border-radius:16px;background:linear-gradient(125deg,#28240c 0%,#161616 55%);padding:22px;box-shadow:0 8px 30px #0003}
 .next-match-heading{display:flex;align-items:center;gap:14px;margin-bottom:18px;color:#ffd000}

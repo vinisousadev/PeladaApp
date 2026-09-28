@@ -4,6 +4,8 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(e.message?.includes('delete_closed_session'))return 'Execute a migração 013 no Supabase para ativar a exclusão de peladas encerradas.';
+ if(e.message?.includes('Somente peladas encerradas')||e.message?.includes('administrador pode excluir')||e.message?.includes('Pelada não encontrada'))return e.message;
  if(e.message?.includes('set_membership_and_attendance'))return 'Execute a migração 012 no Supabase para confirmar novos mensalistas nas peladas abertas.';
  if(e.message?.includes('payments')||e.message?.includes('payment-proofs'))return 'Execute a migração 011 no Supabase para ativar o registro de pagamentos.';
  if(e.message?.includes('pagamento já foi confirmado'))return 'Este pagamento já foi confirmado e não pode ser substituído.';
