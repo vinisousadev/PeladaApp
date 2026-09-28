@@ -1126,18 +1126,6 @@ export default function Club() {
           )}
           {view === "overview" && (
             <>
-              <section className="home-upcoming" aria-label="Agenda em destaque">
-                <div className="section-heading">
-                  <h2>Nossa agenda</h2>
-                  <button
-                    className="text-button"
-                    onClick={() => setView("matches")}
-                  >
-                    Ver peladas <ChevronRight size={16} />
-                  </button>
-                </div>
-                <MatchesBoard sessions={data.sessions} renderMatch={renderMatch} featuredOnly/>
-              </section>
               <div className="player-home">
                 <section
                   className="player-hero"
@@ -1259,7 +1247,18 @@ export default function Club() {
                   </p>
                 </section>
               </div>
-              
+              <section className="section-space">
+                <div className="section-heading">
+                  <h2>Nossa agenda</h2>
+                  <button
+                    className="text-button"
+                    onClick={() => setView("matches")}
+                  >
+                    Ver peladas <ChevronRight size={16} />
+                  </button>
+                </div>
+                <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
+              </section>
             </>
           )}
           {view === "ranking" && (
