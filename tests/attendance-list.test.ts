@@ -12,12 +12,12 @@ test('Copy list identifies each confirmed player, totals and local schedule',()=
  assert.ok(text.endsWith('1 mensalistas · 1 convidados'));
  assert.ok(confirmedListText({...match,status:'cancelled'},profiles).includes('PELADA CANCELADA'));
 });
-test('Demo promotion enrolls future open sessions once and preserves cancellations on repeated saves',()=>{
+test('Changing demo membership never enrolls players or undoes cancellations',()=>{
  const data:ClubData={profiles,sessions:[match,{...match,id:'closed',status:'closed'},{...match,id:'past',starts_at:'2020-01-01T12:00:00Z'},{...match,id:'cancelled',status:'cancelled'}],attendances:[],performances:[],payments:[],slots:[],audit:[]};
  const result=changeDemoMembership(data,'b','monthly',Date.parse('2026-09-30'));
- assert.deepEqual(result.attendances.map(a=>[a.session_id,a.player_id,a.status]),[['game','b','confirmed']]);
+ assert.deepEqual(result.attendances,[]);
  assert.equal(data.attendances.length,0);
- assert.equal(changeDemoMembership(result,'b','monthly',Date.parse('2026-09-30')).attendances.length,1);
+ assert.equal(changeDemoMembership(result,'b','monthly',Date.parse('2026-09-30')).attendances.length,0);
  assert.equal(changeDemoMembership({...result,attendances:[]},'b','monthly',Date.parse('2026-09-30')).attendances.length,0);
- assert.equal(changeDemoMembership(result,'b','guest',Date.parse('2026-09-30')).attendances.length,1);
+ assert.equal(changeDemoMembership(result,'b','guest',Date.parse('2026-09-30')).attendances.length,0);
 });
