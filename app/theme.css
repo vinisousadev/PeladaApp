@@ -204,6 +204,21 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .card-rating strong{font-size:2.1rem}.large .card-rating strong{font-size:2.5rem}
 .star-poster .large .card-rating strong{font-size:34px}
 .star-poster header h2{font-size:17px;font-weight:800;letter-spacing:.3px}
+.matches-board{display:grid;gap:24px}
+.next-match{border:1px solid #ffd00070;border-radius:16px;background:linear-gradient(125deg,#28240c 0%,#161616 55%);padding:22px;box-shadow:0 8px 30px #0003}
+.next-match-heading{display:flex;align-items:center;gap:14px;margin-bottom:18px;color:#ffd000}
+.next-match-heading h2{color:#fff;margin:4px 0 0;font-size:24px}
+.next-match-heading>.badge{margin-left:auto;white-space:nowrap}
+.next-match .attendance-card{margin:0;border-color:#ffffff20;background:#0c0c0c70}
+.agenda-empty{padding:28px;border:1px dashed #ffffff24;border-radius:14px;color:#b5b5b5}
+.agenda-empty svg{color:#ffd000}.agenda-empty h2{font-size:20px;color:#fff;margin:12px 0 6px}.agenda-empty p{margin:0}
+.previous-matches{border-top:1px solid #ffffff18;padding-top:16px}
+.history-toggle{display:flex;align-items:center;gap:12px;width:100%;background:#191919;border:1px solid #ffffff20;border-radius:12px;padding:18px;color:#eee;text-align:left;cursor:pointer;font:inherit}
+.history-toggle:hover{border-color:#ffd00080}.history-toggle:focus-visible{outline:2px solid #ffd000;outline-offset:3px}
+.history-toggle span{flex:1;font-weight:700}.history-toggle small{display:block;color:#999;font-size:12px;font-weight:400;margin-top:5px}
+.history-toggle>svg:first-child{color:#ffd000}.history-toggle .is-open{transform:rotate(180deg)}
+.previous-matches>div:not([hidden]){padding-top:16px}
+@media(max-width:600px){.next-match{padding:14px;border-radius:12px}.next-match-heading{flex-wrap:wrap;gap:10px}.next-match-heading h2{font-size:20px}.next-match-heading>.badge{margin-left:0}.history-toggle{padding:14px}}
 .copy-confirmed{margin:12px 0;display:grid;gap:8px}
 .copy-confirmed label{display:grid;gap:8px}
 .copy-confirmed textarea{width:100%;box-sizing:border-box;background:#141414;color:#fff;border:1px solid #444;border-radius:8px;padding:12px;font:inherit;resize:vertical}
