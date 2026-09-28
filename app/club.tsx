@@ -715,7 +715,7 @@ export default function Club() {
  if(membership==='monthly' && player.membership!=='monthly' && data.profiles.filter(p=>p.membership==='monthly').length>=24) throw Error('24 mensalistas');
  setData(d=>changeDemoMembership(d,player.id,membership));
  }else{const {error}=await getSupabase()!.rpc('set_membership_and_attendance',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
- setNotice(membership==='monthly'?'Mensalista atualizado. Novos mensalistas entram nas peladas abertas futuras; sem vaga, ficam na fila.':'Tipo de jogador atualizado. As presenças existentes foram mantidas.');
+ setNotice('Tipo atualizado. A presença deve ser confirmada pelo jogador; as inscrições existentes foram mantidas.');
  }
  async function createMatch(name: string, date: string, time: string) {
     if (demo) {
@@ -733,21 +733,14 @@ export default function Club() {
           },
           ...d.sessions,
  ],
- attendances:[...d.attendances,...d.profiles.filter(p=>p.membership==='monthly').map(p=>({session_id:sessionId,player_id:p.id,confirmed_at:new Date().toISOString(),status:'confirmed' as const}))],
+ attendances:d.attendances,
  }));
     } else {
-      const { error } = await getSupabase()!
-        .from("sessions")
-        .insert({
-          name,
-          played_on: date,
-          starts_at: startTimestamp(date, time),
-          created_by: userId,
-        });
+      const { error } = await getSupabase()!.rpc('create_manual_session',{p_name:name,p_starts_at:startTimestamp(date,time)});
       if (error) throw error;
       await load();
     }
-    setNotice("Pelada criada. Mensalistas confirmados automaticamente; inscrições abertas para convidados.");
+    setNotice("Pelada criada com a lista vazia. Mensalistas confirmam presença; convidados aguardam sua liberação.");
   }
   async function setAttendance(session: Match, confirm: boolean) {
     if (demo) {
@@ -759,14 +752,11 @@ export default function Club() {
  if(!confirm && data.performances.some(p=>p.session_id===session.id && p.player_id===me!.id))throw Error('Já existe desempenho');
  setData(d=>{
  let attendances=d.attendances.filter(a=>!(a.session_id===session.id && a.player_id===me!.id));
- if(confirm)attendances.push({session_id:session.id,player_id:me!.id,confirmed_at:new Date().toISOString(),status:'waiting',queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1});
- const free=24-attendances.filter(a=>a.session_id===session.id && a.status!=='waiting').length;
- const promoted=new Set(attendances.filter(a=>a.session_id===session.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).slice(0,free).map(a=>a.player_id));
- attendances=attendances.map(a=>a.session_id===session.id && promoted.has(a.player_id)?{...a,status:'confirmed' as const}:a);
+ if(confirm)attendances.push({session_id:session.id,player_id:me!.id,confirmed_at:new Date().toISOString(),status:me!.membership==='monthly'&&attendances.filter(a=>a.session_id===session.id&&a.status!=='waiting').length<24?'confirmed':'waiting',queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1});
  return {...d,attendances};
  });
     } else {
-      const { error } = await getSupabase()!.rpc("set_attendance", {
+      const { error } = await getSupabase()!.rpc("set_attendance_manual", {
         p_session_id: session.id,
         p_confirm: confirm,
       });
@@ -779,9 +769,21 @@ export default function Club() {
     setNotice(
       confirm
         ? "Inscrição realizada! Confira abaixo sua confirmação ou posição na lista de espera."
-        : "Inscrição cancelada. A fila foi atualizada automaticamente.",
+        : "Inscrição cancelada. A vaga será gerenciada pelo organizador.",
     );
   }
+  async function manageWaitlist(session:Match,playerId:string,action:'add'|'promote') {
+ if(!isAdmin)throw Error('Apenas o administrador pode gerenciar a lista de espera.');
+ if(!attendanceWindow(session).canConfirm)throw Error('Gerencie a fila somente em peladas abertas antes do início.');
+ if(demo){
+ const own=data.attendances.find(a=>a.session_id===session.id&&a.player_id===playerId);
+ if(action==='promote'&&own?.status!=='waiting')throw Error('O jogador precisa estar na lista de espera.');
+ if(action==='promote'&&data.attendances.filter(a=>a.session_id===session.id&&a.status!=='waiting').length>=24)throw Error('A lista principal já tem 24 confirmados.');
+ if(action==='add'&&data.profiles.find(p=>p.id===playerId)?.membership==='monthly')throw Error('Adicione apenas convidados à lista de espera.');
+ setData(d=>({...d,attendances:action==='add'?d.attendances.some(a=>a.session_id===session.id&&a.player_id===playerId)?d.attendances:[...d.attendances,{session_id:session.id,player_id:playerId,status:'waiting',confirmed_at:new Date().toISOString(),queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1}]:d.attendances.map(a=>a.session_id===session.id&&a.player_id===playerId?{...a,status:'confirmed',confirmed_at:new Date().toISOString()}:a)}));
+ }else{const {error}=await getSupabase()!.rpc('manage_waitlist',{p_session_id:session.id,p_player_id:playerId,p_action:action});if(error)throw error;await load();}
+ setNotice(action==='add'?'Convidado adicionado ao fim da fila.':'Jogador movido para a lista de confirmados.');
+ }
   async function scheduleMatch(session: Match, date: string, time: string) {
     const starts_at = startTimestamp(date, time);
     if (demo)
@@ -977,6 +979,9 @@ export default function Club() {
  starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
  meId={me.id}
  onAttendance={(confirm) => setAttendance(s, confirm)}
+ membership={me.membership??'guest'}
+ availableGuests={data.profiles.filter(p=>p.membership!=='monthly'&&!data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id))}
+ onManageWaitlist={(playerId,action)=>manageWaitlist(s,playerId,action)}
                       match={s}
                       performance={data.performances.find(
                         (p) => p.session_id === s.id && p.player_id === me.id,
@@ -2052,7 +2057,7 @@ function Admin({
             </div>
             <p className="muted">
               Cada jogador cria a própria conta pelo site. Não é necessário
-              liberar acessos. Marque até 24 mensalistas: ao promover um jogador, ele entra nas peladas abertas futuras e nas novas peladas. Sem vaga, entra na fila.
+              liberar acessos. Marque até 24 mensalistas: cada um confirma sua presença. Convidados aguardam liberação manual na fila.
  Voltar a convidado mantém as presenças existentes. Convidados entram por ordem de inscrição, conforme as vagas.
  Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
             </p>

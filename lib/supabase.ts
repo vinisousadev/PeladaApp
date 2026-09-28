@@ -4,6 +4,8 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(['set_attendance_manual','manage_waitlist','create_manual_session'].some(name=>e.message?.includes(name)))return 'Execute a migração 014 no Supabase para ativar a confirmação manual e o controle da fila.';
+ if(['Gerencie a fila','A lista principal','O jogador precisa estar na lista de espera','Adicione apenas convidados','administrador pode gerenciar','A pelada precisa estar aberta'].some(message=>e.message?.includes(message)))return e.message!;
  if(e.message?.includes('delete_closed_session'))return 'Execute a migração 013 no Supabase para ativar a exclusão de peladas encerradas.';
  if(e.message?.includes('Somente peladas encerradas')||e.message?.includes('administrador pode excluir')||e.message?.includes('Pelada não encontrada'))return e.message;
  if(e.message?.includes('set_membership_and_attendance'))return 'Execute a migração 012 no Supabase para confirmar novos mensalistas nas peladas abertas.';
