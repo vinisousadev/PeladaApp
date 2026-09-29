@@ -1,6 +1,10 @@
 "use client";
 
+import {MatchesBoard} from "./matches-board";
+import {DeleteSession} from "./delete-session";
+import {removeClosedSession} from "@/lib/delete-session";
 import {ClubPicker} from "./club-picker";
+import {changeDemoMembership} from "@/lib/attendance-list";
 import {
   useCallback,
   useEffect,
@@ -26,6 +30,7 @@ import {
   Trophy,
   Upload,
   Users,
+  WalletCards,
   X,
 } from "lucide-react";
 import { configured, friendlyError, getSupabase } from "@/lib/supabase";
@@ -42,13 +47,20 @@ import {
   type Audit,
   type ClubData,
   type Match,
+  type Payment,
   type Performance,
   type Profile,
   type Ranked,
 } from "@/lib/model";
+import {
+  validatePaymentProof,
+  validPaymentAmount,
+  type PixAnalysis,
+} from "@/lib/payments";
 import { PlayerCard } from "./player-card";
 import { StarEditor } from "./match-star";
 import { MatchRow, ScheduleEditor } from "./attendance";
+import { PaymentsView } from "./payments";
 import { demoData } from "@/lib/demo";
 
 const EMPTY: ClubData = {
@@ -56,6 +68,7 @@ const EMPTY: ClubData = {
   sessions: [],
   performances: [],
   attendances: [],
+  payments: [],
   slots: [],
   audit: [],
 };
@@ -63,6 +76,7 @@ type View =
   | "overview"
   | "ranking"
   | "matches"
+  | "payments"
   | "players"
   | "profile"
   | "admin";
@@ -415,6 +429,7 @@ export default function Club() {
             .order("played_on", { ascending: false }),
           sb.from("performances").select("*"),
           sb.from("attendances").select("*"),
+          sb.from("payments").select("*").order("submitted_at", { ascending: false }),
         ]);
         for (const r of results) if (r.error) throw r.error;
         const profiles = (results[0].data ?? []) as Profile[];
@@ -429,6 +444,19 @@ export default function Club() {
           profiles.forEach((p) => {
             p.photo_url =
               urls?.find((u) => u.path === p.photo_path)?.signedUrl ??
+              undefined;
+          });
+        }
+        const payments = (results[4].data ?? []) as Payment[];
+        const proofPaths = payments.map((payment) => payment.proof_path);
+        if (proofPaths.length) {
+          const { data: urls, error } = await sb.storage
+            .from("payment-proofs")
+            .createSignedUrls(proofPaths, 900);
+          if (error) throw error;
+          payments.forEach((payment) => {
+            payment.proof_url =
+              urls?.find((url) => url.path === payment.proof_path)?.signedUrl ??
               undefined;
           });
         }
@@ -455,6 +483,7 @@ export default function Club() {
           sessions: results[1].data ?? [],
           performances: results[2].data ?? [],
           attendances: results[3].data ?? [],
+          payments,
           slots,
           audit,
         });
@@ -577,12 +606,116 @@ export default function Club() {
     }
     setNotice("Desempenho salvo. O ranking já foi atualizado.");
   }
+  async function submitPayment(
+    player: Profile,
+    paymentMonth: string,
+    amount: number,
+    proof: File,
+    analysis: PixAnalysis,
+  ) {
+    if (player.membership !== "monthly")
+      throw Error("O pagamento é exclusivo para mensalistas.");
+    if (!validPaymentAmount(amount)) throw Error("Valor de pagamento inválido.");
+    validatePaymentProof(proof);
+    const previous = data.payments.find(
+      (payment) =>
+        payment.player_id === player.id &&
+        payment.payment_month.slice(0, 7) === paymentMonth,
+    );
+    if (previous?.status === "confirmed")
+      throw Error("Este pagamento já foi confirmado.");
+    if (previous?.status === "pending")
+      throw Error("Este pagamento já aguarda confirmação.");
+
+    if (demo) {
+      const payment: Payment = {
+        id: previous?.id ?? crypto.randomUUID(),
+        player_id: player.id,
+        payment_month: `${paymentMonth}-01`,
+        amount,
+        proof_path: `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`,
+        proof_url: await fileAsDataURL(proof),
+        status: "pending",
+        pix_analysis: analysis,
+        submitted_by: me!.id,
+        submitted_at: new Date().toISOString(),
+        reviewed_by: null,
+        reviewed_at: null,
+      };
+      setData((current) => ({
+        ...current,
+        payments: [
+          ...current.payments.filter((item) => item.id !== payment.id),
+          payment,
+        ],
+      }));
+    } else {
+      const sb = getSupabase()!;
+      const path = `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`;
+      const { error: uploadError } = await sb.storage
+        .from("payment-proofs")
+        .upload(path, proof, {
+          contentType: "image/webp",
+          cacheControl: "3600",
+          upsert: false,
+        });
+      if (uploadError) throw uploadError;
+      const { error: saveError } = await sb.rpc("submit_payment", {
+        p_player_id: player.id,
+        p_month: `${paymentMonth}-01`,
+        p_amount: amount,
+        p_proof_path: path,
+        p_pix_analysis: analysis,
+      });
+      if (saveError) {
+        await sb.storage.from("payment-proofs").remove([path]);
+        throw saveError;
+      }
+      if (previous?.proof_path)
+        await sb.storage.from("payment-proofs").remove([previous.proof_path]);
+      await load();
+    }
+    setNotice("Pagamento enviado. Agora ele aguarda confirmação da organização.");
+  }
+  async function reviewPayment(
+    payment: Payment,
+    status: "confirmed" | "rejected",
+  ) {
+    if (!isAdmin) throw Error("Apenas o administrador pode revisar pagamentos.");
+    if (demo) {
+      setData((current) => ({
+        ...current,
+        payments: current.payments.map((item) =>
+          item.id === payment.id
+            ? {
+                ...item,
+                status,
+                reviewed_by: me!.id,
+                reviewed_at: new Date().toISOString(),
+              }
+            : item,
+        ),
+      }));
+    } else {
+      const { error } = await getSupabase()!.rpc("review_payment", {
+        p_payment_id: payment.id,
+        p_status: status,
+      });
+      if (error) throw error;
+      await load();
+    }
+    setNotice(
+      status === "confirmed"
+        ? "Pagamento confirmado."
+        : "Revisão solicitada; o mensalista já pode reenviar o comprovante.",
+    );
+  }
   async function setMembership(player: Profile, membership: 'monthly' | 'guest') {
  if(demo){
  if(membership==='monthly' && player.membership!=='monthly' && data.profiles.filter(p=>p.membership==='monthly').length>=24) throw Error('24 mensalistas');
- setData(d=>({...d,profiles:d.profiles.map(p=>p.id===player.id?{...p,membership}:p)}));
- }else{const {error}=await getSupabase()!.rpc('set_membership',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
- setNotice('Tipo de jogador atualizado. A confirmação automática vale para novas peladas.');
+ setData(d=>changeDemoMembership(d,player.id,membership));
+ }else{const {error}=await getSupabase()!.rpc('set_membership_and_attendance',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
+ setNotice('Tipo atualizado. A presença deve ser confirmada pelo jogador; as inscrições existentes foram mantidas.');
  }
  async function createMatch(name: string, date: string, time: string) {
     if (demo) {
@@ -600,21 +733,14 @@ export default function Club() {
           },
           ...d.sessions,
  ],
- attendances:[...d.attendances,...d.profiles.filter(p=>p.membership==='monthly').map(p=>({session_id:sessionId,player_id:p.id,confirmed_at:new Date().toISOString(),status:'confirmed' as const}))],
+ attendances:d.attendances,
  }));
     } else {
-      const { error } = await getSupabase()!
-        .from("sessions")
-        .insert({
-          name,
-          played_on: date,
-          starts_at: startTimestamp(date, time),
-          created_by: userId,
-        });
+      const { error } = await getSupabase()!.rpc('create_manual_session',{p_name:name,p_starts_at:startTimestamp(date,time)});
       if (error) throw error;
       await load();
     }
-    setNotice("Pelada criada. Mensalistas confirmados automaticamente; inscrições abertas para convidados.");
+    setNotice("Pelada criada com a lista vazia. Mensalistas confirmam presença; convidados aguardam sua liberação.");
   }
   async function setAttendance(session: Match, confirm: boolean) {
     if (demo) {
@@ -626,14 +752,11 @@ export default function Club() {
  if(!confirm && data.performances.some(p=>p.session_id===session.id && p.player_id===me!.id))throw Error('Já existe desempenho');
  setData(d=>{
  let attendances=d.attendances.filter(a=>!(a.session_id===session.id && a.player_id===me!.id));
- if(confirm)attendances.push({session_id:session.id,player_id:me!.id,confirmed_at:new Date().toISOString(),status:'waiting',queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1});
- const free=24-attendances.filter(a=>a.session_id===session.id && a.status!=='waiting').length;
- const promoted=new Set(attendances.filter(a=>a.session_id===session.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).slice(0,free).map(a=>a.player_id));
- attendances=attendances.map(a=>a.session_id===session.id && promoted.has(a.player_id)?{...a,status:'confirmed' as const}:a);
+ if(confirm)attendances.push({session_id:session.id,player_id:me!.id,confirmed_at:new Date().toISOString(),status:me!.membership==='monthly'&&attendances.filter(a=>a.session_id===session.id&&a.status!=='waiting').length<24?'confirmed':'waiting',queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1});
  return {...d,attendances};
  });
     } else {
-      const { error } = await getSupabase()!.rpc("set_attendance", {
+      const { error } = await getSupabase()!.rpc("set_attendance_manual", {
         p_session_id: session.id,
         p_confirm: confirm,
       });
@@ -646,9 +769,21 @@ export default function Club() {
     setNotice(
       confirm
         ? "Inscrição realizada! Confira abaixo sua confirmação ou posição na lista de espera."
-        : "Inscrição cancelada. A fila foi atualizada automaticamente.",
+        : "Inscrição cancelada. A vaga será gerenciada pelo organizador.",
     );
   }
+  async function manageWaitlist(session:Match,playerId:string,action:'add'|'promote') {
+ if(!isAdmin)throw Error('Apenas o administrador pode gerenciar a lista de espera.');
+ if(!attendanceWindow(session).canConfirm)throw Error('Gerencie a fila somente em peladas abertas antes do início.');
+ if(demo){
+ const own=data.attendances.find(a=>a.session_id===session.id&&a.player_id===playerId);
+ if(action==='promote'&&own?.status!=='waiting')throw Error('O jogador precisa estar na lista de espera.');
+ if(action==='promote'&&data.attendances.filter(a=>a.session_id===session.id&&a.status!=='waiting').length>=24)throw Error('A lista principal já tem 24 confirmados.');
+ if(action==='add'&&data.profiles.find(p=>p.id===playerId)?.membership==='monthly')throw Error('Adicione apenas convidados à lista de espera.');
+ setData(d=>({...d,attendances:action==='add'?d.attendances.some(a=>a.session_id===session.id&&a.player_id===playerId)?d.attendances:[...d.attendances,{session_id:session.id,player_id:playerId,status:'waiting',confirmed_at:new Date().toISOString(),queue_order:Math.max(0,...d.attendances.map(a=>a.queue_order??0))+1}]:d.attendances.map(a=>a.session_id===session.id&&a.player_id===playerId?{...a,status:'confirmed',confirmed_at:new Date().toISOString()}:a)}));
+ }else{const {error}=await getSupabase()!.rpc('manage_waitlist',{p_session_id:session.id,p_player_id:playerId,p_action:action});if(error)throw error;await load();}
+ setNotice(action==='add'?'Convidado adicionado ao fim da fila.':'Jogador movido para a lista de confirmados.');
+ }
   async function scheduleMatch(session: Match, date: string, time: string) {
     const starts_at = startTimestamp(date, time);
     if (demo)
@@ -686,6 +821,19 @@ export default function Club() {
  if(!changed?.length) throw Error('conflict');
  }
  setNotice('Pelada cancelada. Inscrições e registros estão bloqueados.');
+ }
+ async function deleteMatch(match: Match) {
+  if(!isAdmin)throw Error('Apenas o administrador pode excluir peladas.');
+  if(match.status!=='closed')throw Error('Somente peladas encerradas podem ser excluídas.');
+  if(demo)setData(d=>removeClosedSession(d,match.id));
+  else {
+   const {error}=await getSupabase()!.rpc('delete_closed_session',{p_session_id:match.id});
+   if(error)throw error;
+   setData(d=>removeClosedSession(d,match.id));
+   await load();
+  }
+  setEditing(null);
+  setNotice('Pelada excluída. As participações, gols e assistências foram retirados das cartas e do ranking.');
  }
  async function toggleMatch(match: Match) {
     try {
@@ -807,15 +955,40 @@ export default function Club() {
     { id: "overview", label: "Visão geral", icon: Trophy },
     { id: "ranking", label: "Ranking", icon: ClipboardList },
     { id: "matches", label: "Peladas", icon: Goal },
+    { id: "payments", label: "Pagamentos", icon: WalletCards },
     { id: "players", label: "Elenco", icon: Users },
     { id: "profile", label: "Minha carta", icon: Shirt },
     ...(isAdmin
       ? [{ id: "admin", label: "Administração", icon: ShieldCheck }]
       : []),
   ];
-  const monthlyMatches = data.sessions.filter((s) =>
-    s.played_on.startsWith(month),
-  );
+  const renderMatch = (s:Match) => (<MatchRow profiles={data.profiles}
+                      key={s.id}
+                      confirmed={data.attendances.some(
+                        (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
+                      )}
+                      participants={data.attendances
+                        .filter((a) => a.session_id === s.id && a.status !== "waiting")
+                        .map((a) =>
+                          data.profiles.find((p) => p.id === a.player_id),
+                        )
+                        .filter((p): p is Profile => Boolean(p))}
+                      waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
+ star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
+ starTotal={data.profiles.length}
+ starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
+ meId={me.id}
+ onAttendance={(confirm) => setAttendance(s, confirm)}
+ membership={me.membership??'guest'}
+ availableGuests={data.profiles.filter(p=>p.membership!=='monthly'&&!data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id))}
+ onManageWaitlist={(playerId,action)=>manageWaitlist(s,playerId,action)}
+                      match={s}
+                      performance={data.performances.find(
+                        (p) => p.session_id === s.id && p.player_id === me.id,
+                      )}
+                      onClick={() => setEditing({ session: s, player: me })}
+                      isAdmin={isAdmin}
+                    />);
   return (
     <div className="app-shell">
       {demo && (
@@ -905,6 +1078,8 @@ export default function Club() {
                   ? "NA ORGANIZAÇÃO"
                   : view === "profile"
                     ? "SUA IDENTIDADE"
+                    : view === "payments"
+                      ? "EM DIA COM A RESENHA"
                     : "TEMPORADA DO CLUBE"}
               </span>
               <h1>
@@ -914,6 +1089,8 @@ export default function Club() {
                     ? "O ranking da turma."
                     : view === "matches"
                       ? "Dentro de campo."
+                      : view === "payments"
+                        ? "Mensalidade sem complicação."
                       : view === "players"
                         ? "Nosso elenco."
                         : view === "profile"
@@ -921,17 +1098,19 @@ export default function Club() {
                           : "Tudo sob controle."}
               </h1>
             </div>
-            <label className="month-picker">
-              Mês do ranking
+            {view !== "matches" && <label className="month-picker">
+              {view === "payments" ? "Mês do pagamento" : "Mês do ranking"}
               <input
-                aria-label="Mês do ranking"
+                aria-label={
+                  view === "payments" ? "Mês do pagamento" : "Mês do ranking"
+                }
                 type="month"
                 value={month}
                 onChange={(e) => {
                   if (e.target.value) setMonth(e.target.value);
                 }}
               />
-            </label>
+            </label>}
           </div>
           {error && (
             <div className="error-banner" role="alert">
@@ -1075,7 +1254,7 @@ export default function Club() {
               </div>
               <section className="section-space">
                 <div className="section-heading">
-                  <h2>Peladas do mês</h2>
+                  <h2>Nossa agenda</h2>
                   <button
                     className="text-button"
                     onClick={() => setView("matches")}
@@ -1083,43 +1262,7 @@ export default function Club() {
                     Ver peladas <ChevronRight size={16} />
                   </button>
                 </div>
-                {monthlyMatches.length ? (
-                  monthlyMatches.slice(0, 3).map((s) => (
-                    <MatchRow profiles={data.profiles}
-                      key={s.id}
-                      confirmed={data.attendances.some(
-                        (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
-                      )}
-                      participants={data.attendances
-                        .filter((a) => a.session_id === s.id && a.status !== "waiting")
-                        .map((a) =>
-                          data.profiles.find((p) => p.id === a.player_id),
-                        )
-                        .filter((p): p is Profile => Boolean(p))}
-                      waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
- starTotal={data.profiles.length}
- starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
- meId={me.id}
- onAttendance={(confirm) => setAttendance(s, confirm)}
-                      match={s}
-                      performance={data.performances.find(
-                        (p) => p.session_id === s.id && p.player_id === me.id,
-                      )}
-                      onClick={() => setEditing({ session: s, player: me })}
-                      isAdmin={isAdmin}
-                    />
-                  ))
-                ) : (
-                  <Empty
-                    title="Nenhuma pelada neste mês."
-                    text={
-                      isAdmin
-                        ? "Crie uma pelada na Administração."
-                        : "O organizador vai adicionar os próximos jogos."
-                    }
-                  />
-                )}
+                <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
               </section>
             </>
           )}
@@ -1218,7 +1361,7 @@ export default function Club() {
             <section>
               <div className="section-heading">
                 <div>
-                  <h2>Seus gols. Seus passes.</h2>
+                  <h2>Os próximos encontros da turma.</h2>
                   <p className="muted">
                     Reserve sua vaga antes do início. Cancelamentos até uma hora
                     antes. Depois do início, registre seus gols e assistências.
@@ -1226,40 +1369,19 @@ export default function Club() {
                   </p>
                 </div>
               </div>
-              {monthlyMatches.length ? (
-                monthlyMatches.map((s) => (
-                  <MatchRow profiles={data.profiles}
-                    key={s.id}
-                    confirmed={data.attendances.some(
-                      (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
-                    )}
-                    participants={data.attendances
-                      .filter((a) => a.session_id === s.id && a.status !== "waiting")
-                      .map((a) =>
-                        data.profiles.find((p) => p.id === a.player_id),
-                      )
-                      .filter((p): p is Profile => Boolean(p))}
-                    waiting={data.attendances.filter(a=>a.session_id===s.id && a.status==='waiting').sort((a,b)=>(a.queue_order??0)-(b.queue_order??0)).map(a=>data.profiles.find(p=>p.id===a.player_id)).filter((p): p is Profile=>Boolean(p))}
- star={rankPlayers(data,s.played_on.slice(0,7)).find(p=>p.id===s.star_player_id)}
- starTotal={data.profiles.length}
- starPerformance={data.performances.find(p=>p.session_id===s.id&&p.player_id===s.star_player_id)}
- meId={me.id}
- onAttendance={(confirm) => setAttendance(s, confirm)}
-                    match={s}
-                    performance={data.performances.find(
-                      (p) => p.session_id === s.id && p.player_id === me.id,
-                    )}
-                    onClick={() => setEditing({ session: s, player: me })}
-                    isAdmin={isAdmin}
-                  />
-                ))
-              ) : (
-                <Empty
-                  title="Sem peladas neste mês"
-                  text="Selecione outro mês ou aguarde o organizador criar uma pelada."
-                />
-              )}
+              <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
             </section>
+          )}
+          {view === "payments" && (
+            <PaymentsView
+              profiles={data.profiles}
+              payments={data.payments}
+              month={month}
+              me={me}
+              isAdmin={isAdmin}
+              submit={submitPayment}
+              review={reviewPayment}
+            />
           )}
           {view === "players" && (
             <section>
@@ -1299,6 +1421,7 @@ export default function Club() {
               createMatch={createMatch}
               toggleMatch={toggleMatch}
               cancelMatch={cancelMatch}
+              deleteMatch={deleteMatch}
               saveStar={saveStar}
               scheduleMatch={scheduleMatch}
  setMembership={setMembership}
@@ -1729,6 +1852,7 @@ function Admin({
   createMatch,
   toggleMatch,
   cancelMatch,
+  deleteMatch,
   saveStar,
   scheduleMatch,
   onEdit,
@@ -1740,6 +1864,7 @@ function Admin({
   scheduleMatch: (s: Match, d: string, t: string) => Promise<void>;
   toggleMatch: (s: Match) => Promise<void>;
   cancelMatch: (s: Match) => Promise<void>;
+  deleteMatch: (s: Match) => Promise<void>;
   saveStar: (s: Match,id: string|null) => Promise<void>;
   onEdit: (s: Match, p: Profile) => void;
 }) {
@@ -1912,6 +2037,7 @@ function Admin({
                     : "Reabrir registros"}
                 </button>
                 <CancelSession session={s} save={cancelMatch}/>
+                <DeleteSession session={s} save={deleteMatch} disabled={busy}/>
  <StarEditor match={s} save={saveStar} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id&&a.status!=='waiting'))}/>
               </div>
             ))}
@@ -1931,8 +2057,8 @@ function Admin({
             </div>
             <p className="muted">
               Cada jogador cria a própria conta pelo site. Não é necessário
-              liberar acessos. Marque até 24 mensalistas: eles entram automaticamente nas novas peladas.
- Alterar o tipo não muda inscrições em peladas já criadas. Convidados entram por ordem de inscrição, conforme as vagas.
+              liberar acessos. Marque até 24 mensalistas: cada um confirma sua presença. Convidados aguardam liberação manual na fila.
+ Voltar a convidado mantém as presenças existentes. Convidados entram por ordem de inscrição, conforme as vagas.
  Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
             </p>
           </div>

@@ -4,6 +4,18 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(['set_attendance_manual','manage_waitlist','create_manual_session'].some(name=>e.message?.includes(name)))return 'Execute a migração 014 no Supabase para ativar a confirmação manual e o controle da fila.';
+ if(['Gerencie a fila','A lista principal','O jogador precisa estar na lista de espera','Adicione apenas convidados','administrador pode gerenciar','A pelada precisa estar aberta'].some(message=>e.message?.includes(message)))return e.message!;
+ if(e.message?.includes('delete_closed_session'))return 'Execute a migração 013 no Supabase para ativar a exclusão de peladas encerradas.';
+ if(e.message?.includes('Somente peladas encerradas')||e.message?.includes('administrador pode excluir')||e.message?.includes('Pelada não encontrada'))return e.message;
+ if(e.message?.includes('set_membership_and_attendance'))return 'Execute a migração 012 no Supabase para confirmar novos mensalistas nas peladas abertas.';
+ if(e.message?.includes('payments')||e.message?.includes('payment-proofs'))return 'Execute a migração 011 no Supabase para ativar o registro de pagamentos.';
+ if(e.message?.includes('pagamento já foi confirmado'))return 'Este pagamento já foi confirmado e não pode ser substituído.';
+ if(e.message?.includes('já aguarda confirmação'))return 'Este pagamento já está aguardando confirmação.';
+ if(e.message?.includes('exclusivo para mensalistas'))return 'Somente mensalistas podem registrar pagamentos.';
+ if(e.message?.includes('próprio pagamento'))return 'Você só pode registrar o próprio pagamento.';
+ if(e.message?.includes('administrador pode revisar'))return 'Somente a organização pode confirmar ou rejeitar pagamentos.';
+ if(e.message?.includes('Comprovante não encontrado'))return 'O envio do comprovante não foi concluído. Tente novamente.';
  if(e.message?.includes('favorite_club_id'))return 'Execute a migração 010 no Supabase para ativar o time do coração.';
  if(e.message?.includes('star_player_id'))return 'Execute a migração 009 no Supabase para ativar o craque da pelada.';
  if(e.message?.includes('craque'))return e.message;

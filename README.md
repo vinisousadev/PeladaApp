@@ -6,7 +6,7 @@ Aplique o conteúdo de `supabase/migrations/006_photo_framing.sql` uma vez no SQ
 
 ## Mensalistas e convidados
 
-Execute uma vez o conteúdo de `supabase/migrations/007_monthly_waitlist.sql` no SQL Editor, após as anteriores. Cadastros atuais e novos começam como convidados. Em Administração → Jogadores, selecione até 24 mensalistas. Ao criar uma nova pelada, todos os mensalistas são confirmados automaticamente. Alterar a classificação não muda inscrições existentes.
+Execute uma vez o conteúdo de `supabase/migrations/007_monthly_waitlist.sql` no SQL Editor, após as anteriores. Cadastros atuais e novos começam como convidados. Em Administração → Jogadores, selecione até 24 mensalistas. Ao criar uma nova pelada, todos os mensalistas são confirmados automaticamente. A migração 012 abaixo estende essa regra às peladas já abertas.
 
 Convidados entram na fila por ordem de inscrição; com vaga disponível, são confirmados imediatamente. Cancelamentos até uma hora antes promovem automaticamente o primeiro da fila. Reinscrição vai para o final, inclusive de mensalistas. A lista de espera não permite registrar desempenho. A aplicação atualiza os dados a cada 30 segundos e ao voltar à aba.
 
@@ -30,3 +30,25 @@ A exportação do craque usa formato Story 9:16 em 2160 × 3840, fundo preto sem
 
 ### Time do coração
 Execute o conteúdo de `supabase/migrations/010_favorite_club.sql` no SQL Editor após as migrações anteriores. A seleção é opcional em Minha carta e aparece também na imagem do craque. Catálogo: `lib/football-clubs.json`. Escudos e fontes: `public/club-crests/SOURCES.md`. Novos clubes exigem atualizar a restrição do banco em nova migração.
+
+## Confirmação manual e convidados (regra atual)
+
+Execute `supabase/migrations/014_manual_attendance.sql` após as migrações anteriores. Esta regra substitui as confirmações e promoções automáticas descritas nas migrações 007 e 012: toda nova pelada começa sem inscritos, e mudar o tipo do jogador não cria presença. Mensalistas confirmam por conta própria quando há vaga; com 24 confirmados, entram na espera. Convidados entram sempre na espera, mesmo havendo vagas. A fila é numerada pela ordem de inscrição; sair e voltar coloca o jogador no final. Cancelamentos nunca promovem alguém automaticamente.
+
+Na lista de espera da pelada, administradores podem adicionar convidados cadastrados e escolher **Mover para confirmados** ao lado do jogador desejado. Somente o administrador libera jogadores, com limite de 24 vagas, enquanto a pelada estiver aberta e antes do início. A posição é informativa; o administrador escolhe quem liberar. Os prazos de confirmação e cancelamento continuam iguais. A migração preserva todas as inscrições existentes; não zera listas de peladas já criadas.
+
+## Mensalistas em peladas abertas e lista para copiar (regra anterior à 014)
+
+Execute `supabase/migrations/012_monthly_open_sessions.sql` no SQL Editor após a 011. Ao mudar de convidado para mensalista, o jogador entra em todas as peladas abertas que ainda não começaram. São respeitadas as 24 vagas e a ordem da fila: ninguém é removido para dar lugar ao novo mensalista. Inscrições existentes não são duplicadas nem perdem sua posição. Repetir o salvamento de um mensalista não desfaz cancelamentos; voltar a convidado mantém as presenças. A migração não inscreve retroativamente quem já era mensalista, para não desfazer cancelamentos anteriores.
+
+Cada pelada oferece **Copiar lista de confirmados**, com todos os confirmados, suas classificações atuais, horário e totais. A fila de espera não é incluída. Se o navegador bloquear a área de transferência, a lista aparece em um campo para copiar manualmente. Peladas canceladas são identificadas no texto como histórico.
+
+## Excluir pelada encerrada
+
+Execute `supabase/migrations/013_delete_closed_session.sql` no SQL Editor após as anteriores. Administração → Controle das peladas exibe **Excluir pelada** somente para peladas encerradas, com confirmação explícita. A exclusão é permanente: remove a partida, presenças, desempenhos e histórico de alterações desses desempenhos. As cartas e o ranking passam a considerar somente os jogos restantes. Perfis, pagamentos e outras peladas são preservados. O banco limita a ação a administradores e revalida o encerramento sob bloqueio, inclusive se outro administrador reabrir a partida antes da confirmação. Não é necessário excluir nem recriar jogadores.
+
+## Pagamentos
+
+Execute uma vez o conteúdo de `supabase/migrations/011_payments.sql` no SQL Editor após as migrações anteriores. A aba Pagamentos lista os mensalistas e permite que cada um envie o próprio comprovante; administradores também podem registrar e revisar pagamentos em nome deles.
+
+Os comprovantes ficam em um bucket privado, são normalizados para WebP no navegador e limitados a 3 MB e 20 megapixels. Quando o navegador suporta leitura de QR, a interface procura um payload Pix oficial, mas o resultado é apenas preliminar: todo envio permanece como “Aguardando confirmação” até a revisão da organização. Valores, imagens e situação detalhada são visíveis somente para o próprio jogador e administradores.
