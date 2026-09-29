@@ -1085,7 +1085,7 @@ export default function Club() {
                 </div>
                 {monthlyMatches.length ? (
                   monthlyMatches.slice(0, 3).map((s) => (
-                    <MatchRow
+                    <MatchRow profiles={data.profiles}
                       key={s.id}
                       confirmed={data.attendances.some(
                         (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
@@ -1228,7 +1228,7 @@ export default function Club() {
               </div>
               {monthlyMatches.length ? (
                 monthlyMatches.map((s) => (
-                  <MatchRow
+                  <MatchRow profiles={data.profiles}
                     key={s.id}
                     confirmed={data.attendances.some(
                       (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
