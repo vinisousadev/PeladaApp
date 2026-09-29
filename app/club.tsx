@@ -962,7 +962,7 @@ export default function Club() {
       ? [{ id: "admin", label: "Administração", icon: ShieldCheck }]
       : []),
   ];
-  const renderMatch = (s:Match) => (<MatchRow
+  const renderMatch = (s:Match) => (<MatchRow profiles={data.profiles}
                       key={s.id}
                       confirmed={data.attendances.some(
                         (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
