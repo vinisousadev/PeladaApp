@@ -772,6 +772,20 @@ export default function Club() {
         : "Inscrição cancelada. A vaga será gerenciada pelo organizador.",
     );
   }
+  async function removeConfirmed(session:Match,playerId:string) {
+    if(!isAdmin)throw Error('Somente o administrador pode retirar jogadores dos confirmados.');
+    if(session.status!=='open')throw Error('Só é possível retirar confirmados de uma pelada aberta.');
+    if(demo){
+      if(data.performances.some(p=>p.session_id===session.id&&p.player_id===playerId))throw Error('Este jogador já tem desempenho registrado nesta pelada. Corrija os números pela Administração; a presença deve ser preservada.');
+      if(session.star_player_id===playerId)throw Error('Este jogador é o craque da pelada. Remova ou altere o craque antes de retirar a presença.');
+      setData(d=>({...d,attendances:d.attendances.filter(a=>!(a.session_id===session.id&&a.player_id===playerId&&a.status!=='waiting'))}));
+    }else{
+      const {error}=await getSupabase()!.rpc('admin_remove_attendance',{p_session_id:session.id,p_player_id:playerId});
+      if(error)throw error;
+      await load();
+    }
+    setNotice('Jogador retirado dos confirmados. A vaga está disponível para liberação pelo administrador.');
+  }
   async function manageWaitlist(session:Match,playerId:string,action:'add'|'promote') {
  if(!isAdmin)throw Error('Apenas o administrador pode gerenciar a lista de espera.');
  if(!attendanceWindow(session).canConfirm)throw Error('Gerencie a fila somente em peladas abertas antes do início.');
@@ -981,6 +995,7 @@ export default function Club() {
  onAttendance={(confirm) => setAttendance(s, confirm)}
  membership={me.membership??'guest'}
  availableGuests={data.profiles.filter(p=>p.membership!=='monthly'&&!data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id))}
+ onRemoveConfirmed={playerId=>removeConfirmed(s,playerId)}
  onManageWaitlist={(playerId,action)=>manageWaitlist(s,playerId,action)}
                       match={s}
                       performance={data.performances.find(
