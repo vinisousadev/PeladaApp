@@ -240,3 +240,4 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .star-poster .evolution-trim{animation:none!important;opacity:1!important}
 .star-poster .card-shimmer{display:none!important}
 @media(prefers-reduced-motion:reduce){.football-card .card-shimmer{display:none}.football-card>.evolution-trim{animation:none!important}.football-card{transform:none!important}}
+.remove-confirmed{width:100%;margin-top:6px}.remove-confirmed p{font-size:.8rem;line-height:1.5;margin:8px 0}.remove-confirmed-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.remove-confirmed-actions .secondary{padding:8px 12px;font-size:.8rem}
