@@ -41,7 +41,9 @@ import {
   photoStyle,
   currentDate,
   dateLabel,
-  monthLabel,
+  rankingPeriodLabel,
+  isOpeningRanking,
+  inRankingPeriod,
   rankPlayers,
   validTotals,
   type Audit,
@@ -1127,6 +1129,9 @@ export default function Club() {
               />
             </label>}
           </div>
+          {view !== "payments" && view !== "matches" && isOpeningRanking(month) && (
+            <p className="ranking-period-note">Primeiro período: setembro + outubro de 2026. Os pontos acumulam até 31/10; o próximo ranking começa em 01/11, com 50 pontos.</p>
+          )}
           {error && (
             <div className="error-banner" role="alert">
               <span>{error}</span>
@@ -1165,7 +1170,7 @@ export default function Club() {
                     </p>
                     <span className="hero-rank">
                       <Trophy size={18} />
-                      {ownRank?.rank ?? 1}º no ranking de {monthLabel(month)}
+                      {ownRank?.rank ?? 1}º no ranking de {rankingPeriodLabel(month)}
                     </span>
                     <div className="personal-numbers">
                       <span>
@@ -1290,7 +1295,7 @@ export default function Club() {
                 <div>
                   <h2>Classificação completa</h2>
                   <p className="muted">
-                    {monthLabel(month)} · {data.profiles.length} jogadores
+                    {rankingPeriodLabel(month)} · {data.profiles.length} jogadores
                   </p>
                 </div>
                 <span className="badge">Nota mensal · 50 a 100</span>
@@ -1402,7 +1407,7 @@ export default function Club() {
             <section>
               <div className="section-heading">
                 <h2>{data.profiles.length} jogadores, um clube.</h2>
-                <span className="muted">{monthLabel(month)}</span>
+                <span className="muted">{rankingPeriodLabel(month)}</span>
               </div>
               <div className="roster-grid">
                 {rankPlayers(data, month).map((p) => (
@@ -1472,7 +1477,7 @@ export default function Club() {
               month={month}
               large
             />
-            <p>{monthLabel(month)} · Pontuação por gols e assistências</p>
+            <p>{rankingPeriodLabel(month)} · Pontuação por gols e assistências</p>
           </div>
         </Modal>
       )}
@@ -1772,7 +1777,7 @@ function ProfileEditor({
   return (
     <div className="profile-layout">
       <section className="profile-preview">
-        <span className="eyebrow">SUA CARTA / {monthLabel(month)}</span>
+        <span className="eyebrow">SUA CARTA / {rankingPeriodLabel(month)}</span>
         <PlayerCard
           player={{
             ...player,
@@ -1902,7 +1907,7 @@ function Admin({
       setBusy(false);
     }
   }
-  const matches = data.sessions.filter((s) => s.played_on.startsWith(month));
+  const matches = data.sessions.filter((s) => inRankingPeriod(s.played_on, month));
   const selected = matches.find((s) => s.id === matchId) ?? matches[0];
   const player =
     data.profiles.find((p) => p.id === playerId) ?? data.profiles[0];

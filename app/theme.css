@@ -241,3 +241,4 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .star-poster .card-shimmer{display:none!important}
 @media(prefers-reduced-motion:reduce){.football-card .card-shimmer{display:none}.football-card>.evolution-trim{animation:none!important}.football-card{transform:none!important}}
 .remove-confirmed{width:100%;margin-top:6px}.remove-confirmed p{font-size:.8rem;line-height:1.5;margin:8px 0}.remove-confirmed-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.remove-confirmed-actions .secondary{padding:8px 12px;font-size:.8rem}
+.ranking-period-note{padding:12px 16px;margin:0 0 20px;border-left:3px solid #ffd52a;border-radius:0 8px 8px 0;background:#ffd52a0d;color:var(--muted);font-size:.85rem;line-height:1.6}

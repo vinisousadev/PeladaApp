@@ -4,7 +4,7 @@ import {motion,useAnimationControls,useInView,useMotionValue,useReducedMotion,us
 import {getFootballClub} from '@/lib/football-clubs';
 import {cardTier} from '@/lib/card-tier';
 import {CardFrame} from './card-frame';
-import {type Ranked,monthLabel,photoStyle} from '@/lib/model';
+import {type Ranked,rankingPeriodLabel,photoStyle} from '@/lib/model';
 export function PlayerCard({
   player,
   month,
@@ -79,7 +79,7 @@ export function PlayerCard({
         </div>
         <div className="card-identity">
           <h3>{player.display_name}</h3>
-          <span>{monthLabel(month)}</span>
+          <span>{rankingPeriodLabel(month)}</span>
         </div>
         <div className="card-stats">
           <div>

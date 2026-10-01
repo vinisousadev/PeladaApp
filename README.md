@@ -56,3 +56,7 @@ Execute o conteúdo de `supabase/migrations/015_admin_remove_attendance.sql` no 
 Execute uma vez o conteúdo de `supabase/migrations/011_payments.sql` no SQL Editor após as migrações anteriores. A aba Pagamentos lista os mensalistas e permite que cada um envie o próprio comprovante; administradores também podem registrar e revisar pagamentos em nome deles.
 
 Os comprovantes ficam em um bucket privado, são normalizados para WebP no navegador e limitados a 3 MB e 20 megapixels. Quando o navegador suporta leitura de QR, a interface procura um payload Pix oficial, mas o resultado é apenas preliminar: todo envio permanece como “Aguardando confirmação” até a revisão da organização. Valores, imagens e situação detalhada são visíveis somente para o próprio jogador e administradores.
+
+## Primeiro período de ranking
+
+Setembro e outubro de 2026 formam um único período de pontuação. Selecionar qualquer um desses meses mostra o mesmo ranking acumulado, inclusive nas cartas e no craque da pelada. Em 01/11/2026 volta a valer o ranking mensal, começando com 50 pontos e somando apenas os jogos de novembro. Resultados e datas originais permanecem salvos; nenhuma migração ou recadastro é necessário. Os pagamentos continuam separados por mês.

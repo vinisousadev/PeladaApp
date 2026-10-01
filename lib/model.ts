@@ -12,8 +12,13 @@ export const MONTHLY_BASE=50;
 export const MONTHLY_MAX=100;
 export function monthlyScore(goals:number,assists:number){return Math.min(MONTHLY_MAX,MONTHLY_BASE+goals*3+assists*2);}
 export function currentDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Fortaleza',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+// The club's inaugural ranking spans September and October 2026.
+// Only the ranking filter changes; original match dates and records stay intact.
+export function isOpeningRanking(month:string){return month==='2026-09'||month==='2026-10';}
+export function inRankingPeriod(date:string,month:string){return isOpeningRanking(month)?date>='2026-09-01'&&date<'2026-11-01':date.slice(0,7)===month;}
+export function rankingPeriodLabel(month:string){return isOpeningRanking(month)?'setembro + outubro de 2026':monthLabel(month);}
 export function rankPlayers(data:ClubData,month:string,criterion:'points'|'goals'|'assists'='points'):Ranked[]{
- const ids=new Set(data.sessions.filter(s=>s.status!=='cancelled'&&s.played_on.slice(0,7)===month).map(s=>s.id));
+ const ids=new Set(data.sessions.filter(s=>s.status!=='cancelled'&&inRankingPeriod(s.played_on,month)).map(s=>s.id));
  const ranked=data.profiles.map(p=>{const rows=data.performances.filter(r=>r.player_id===p.id&&ids.has(r.session_id));const goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0);return {...p,goals,assists,points:monthlyScore(goals,assists),played:rows.length,rank:0};}).sort((a,b)=>b[criterion]-a[criterion]||b.goals-a.goals||b.assists-a.assists||a.display_name.localeCompare(b.display_name,'pt-BR'));
  return ranked.map((p,i)=>({...p,rank:i&&p[criterion]===ranked[i-1][criterion]&&p.goals===ranked[i-1].goals&&p.assists===ranked[i-1].assists?(ranked[i].rank=ranked[i-1].rank):(ranked[i].rank=i+1)}));
 }
