@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {rankPlayers,validTotals,monthlyScore,type ClubData} from '../lib/model';
 test('Monthly rank handles assists, ties, zero stats and repeated saves',()=>{
  const data:ClubData={profiles:['A','B','C','D'].map((name,i)=>({id:String(i),display_name:name,position:'MEI',role:'player',photo_path:null,photo_y:25})),sessions:[{id:'sept',name:'Setembro',played_on:'2027-09-30',status:'open',created_by:'0'},{id:'oct',name:'Outubro',played_on:'2027-10-01',status:'open',created_by:'0'}],performances:[{id:'p0',session_id:'sept',player_id:'0',goals:2,assists:3,revision:1,updated_at:''},{id:'p1',session_id:'sept',player_id:'1',goals:2,assists:3,revision:1,updated_at:''},{id:'p2',session_id:'sept',player_id:'2',goals:0,assists:5,revision:1,updated_at:''},{id:'p3',session_id:'oct',player_id:'3',goals:99,assists:0,revision:1,updated_at:''}],attendances:[],payments:[],slots:[],audit:[]};
- let ranks=rankPlayers(data,'2027-09');assert.deepEqual(ranks.map(p=>p.rank),[1,1,3,4]);assert.equal(ranks[0].points,62);assert.equal(ranks[3].points,50);
+ let ranks=rankPlayers(data,'2027-09');assert.deepEqual(ranks.map(p=>p.rank),[1,2,3,4]);assert.equal(ranks[0].points,62);assert.equal(ranks[3].points,50);
  assert.equal(rankPlayers(data,'2027-09','assists')[0].id,'2');
  data.performances[0]={...data.performances[0],goals:1,revision:2};ranks=rankPlayers(data,'2027-09');assert.equal(ranks.find(p=>p.id==='0')?.points,59);
  assert.equal(rankPlayers(data,'2027-10')[0].id,'3');
  assert.equal(rankPlayers(data,'2027-10')[0].points,100);
- assert.ok(rankPlayers(data,'2027-11').every(p=>p.points===50&&p.rank===1));
+ assert.ok(rankPlayers(data,'2027-11').every((p,i)=>p.points===50&&p.rank===i+1));
  data.performances[0]={...data.performances[0],goals:20,assists:10};
  data.performances[1]={...data.performances[1],goals:18,assists:20};
  ranks=rankPlayers(data,'2027-09');assert.equal(ranks[0].points,100);assert.equal(ranks[1].points,100);assert.equal(ranks[0].id,'0');
@@ -16,6 +16,17 @@ test('Monthly rank handles assists, ties, zero stats and repeated saves',()=>{
  assert.equal(validTotals(0,99),true);assert.equal(validTotals(-1,0),false);assert.equal(validTotals(1.5,0),false);assert.equal(validTotals(NaN,1),false);
  data.sessions[0].status='cancelled';
  assert.ok(rankPlayers(data,'2027-09').every(p=>p.points===50&&p.goals===0&&p.assists===0&&p.played===0));
+});
+test('Ties use alphabetical order only and positions never repeat or skip',()=>{
+ const data:ClubData={profiles:['Zeca','Álvaro','Bruno','Davi','Bruno'].map((display_name,i)=>({id:String(i),display_name,position:'MEI',role:'player',photo_path:null,photo_y:25})),sessions:[{id:'game',name:'Pelada',played_on:'2026-09-30',status:'closed',created_by:'0'}],performances:[[2,0],[0,3],[2,0],[3,0],[0,3]].map(([goals,assists],i)=>({id:String(i),player_id:String(i),session_id:'game',goals,assists,revision:1,updated_at:''})),attendances:[],payments:[],slots:[],audit:[]};
+ const before=JSON.stringify(data);
+ const ranked=rankPlayers(data,'2026-10');
+ assert.deepEqual(ranked.map(p=>p.id),['3','1','2','4','0']);
+ assert.deepEqual(ranked.map(p=>p.rank),[1,2,3,4,5]);
+ assert.deepEqual(rankPlayers({...data,profiles:[...data.profiles].reverse()},'2026-10'),ranked);
+ assert.deepEqual(rankPlayers(data,'2026-10','goals').map(p=>p.id),['3','2','0','1','4']);
+ assert.deepEqual(rankPlayers(data,'2026-10','assists').map(p=>p.id),['1','4','2','3','0']);
+ assert.equal(JSON.stringify(data),before);
 });
 test('A score of 100 is attainable in four or five games and never exceeded',()=>{
  assert.equal(monthlyScore(0,0),50);

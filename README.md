@@ -60,3 +60,7 @@ Os comprovantes ficam em um bucket privado, são normalizados para WebP no naveg
 ## Primeiro período de ranking
 
 Setembro e outubro de 2026 formam um único período de pontuação. Selecionar qualquer um desses meses mostra o mesmo ranking acumulado, inclusive nas cartas e no craque da pelada. Em 01/11/2026 volta a valer o ranking mensal, começando com 50 pontos e somando apenas os jogos de novembro. Resultados e datas originais permanecem salvos; nenhuma migração ou recadastro é necessário. Os pagamentos continuam separados por mês.
+
+## Desempate e posições do ranking
+
+As posições são sequenciais (1, 2, 3...), sem repetição. Em empate no critério selecionado (pontos, gols ou assistências), vale somente a ordem alfabética do nome, desconsiderando maiúsculas e acentos. Nomes iguais têm ordem estável pelo identificador do jogador. A mesma regra é usada nas cartas, no pódio e na imagem do craque.
