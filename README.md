@@ -64,3 +64,7 @@ Setembro e outubro de 2026 formam um único período de pontuação. Selecionar 
 ## Desempate e posições do ranking
 
 As posições são sequenciais (1, 2, 3...), sem repetição. Em empate no critério selecionado (pontos, gols ou assistências), vale somente a ordem alfabética do nome, desconsiderando maiúsculas e acentos. Nomes iguais têm ordem estável pelo identificador do jogador. A mesma regra é usada nas cartas, no pódio e na imagem do craque.
+
+## Redução do tráfego de imagens
+
+Links assinados de fotos são reutilizados em memória durante a sessão, com renovação um minuto antes de expirar. Atualizações a cada 30 segundos não trocam mais esses links. Mudanças de usuário ou modo demonstração criam um cache separado. Pedidos simultâneos compartilham a assinatura; falhas permitem nova tentativa. Comprovantes só são assinados e exibidos ao clicar em Comprovante. Nenhum bucket torna-se público e nenhuma migração é necessária. O consumo já contabilizado pelo Supabase não é reduzido retroativamente.

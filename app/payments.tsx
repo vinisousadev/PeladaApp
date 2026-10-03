@@ -1,10 +1,10 @@
 "use client";
+import {PaymentProof} from "./payment-proof";
 
 import {
   Check,
   CheckCircle2,
   Clock3,
-  ExternalLink,
   FileCheck2,
   ImagePlus,
   LockKeyhole,
@@ -320,16 +320,7 @@ export function PaymentsView({
                 )}
               </div>
               <div className="payment-actions">
-                {canSee && payment?.proof_url && (
-                  <a
-                    className="secondary"
-                    href={payment.proof_url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Comprovante <ExternalLink size={15} />
-                  </a>
-                )}
+                {canSee && payment && <PaymentProof key={me.id+payment.proof_path} path={payment.proof_path} demoUrl={payment.proof_url}/>}
                 {canSubmit && (
                   <button className="primary" onClick={() => setTarget(player)}>
                     {payment ? "Reenviar" : "Registrar pagamento"}
