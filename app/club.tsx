@@ -1,5 +1,6 @@
 "use client";
 
+import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
 import {removeClosedSession} from "@/lib/delete-session";
@@ -7,6 +8,7 @@ import {ClubPicker} from "./club-picker";
 import {changeDemoMembership} from "@/lib/attendance-list";
 import {
   useCallback,
+  useMemo,
   useEffect,
   useRef,
   useState,
@@ -346,6 +348,11 @@ export default function Club() {
     [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const photoUrls = useMemo(() => createSignedUrlCache(async paths => {
+    const {data,error}=await getSupabase()!.storage.from('player-photos').createSignedUrls(paths,3600);
+    if(error)throw error;
+    return (data??[]).map(row=>({path:row.path??'',signedUrl:row.signedUrl}));
+  },3600), [userId,demo]);
   const [viewHistory, setViewHistory] = useState<View[]>(["overview"]);
   const view = viewHistory[viewHistory.length - 1];
   const setView = useCallback((next: View) => {
@@ -439,29 +446,10 @@ export default function Club() {
           .map((p) => p.photo_path)
           .filter((x): x is string => Boolean(x));
         if (paths.length) {
-          const { data: urls, error } = await sb.storage
-            .from("player-photos")
-            .createSignedUrls(paths, 3600);
-          if (error) throw error;
-          profiles.forEach((p) => {
-            p.photo_url =
-              urls?.find((u) => u.path === p.photo_path)?.signedUrl ??
-              undefined;
-          });
+          const urls = await photoUrls(paths);
+          profiles.forEach(p => { p.photo_url = urls.get(p.photo_path!); });
         }
         const payments = (results[4].data ?? []) as Payment[];
-        const proofPaths = payments.map((payment) => payment.proof_path);
-        if (proofPaths.length) {
-          const { data: urls, error } = await sb.storage
-            .from("payment-proofs")
-            .createSignedUrls(proofPaths, 900);
-          if (error) throw error;
-          payments.forEach((payment) => {
-            payment.proof_url =
-              urls?.find((url) => url.path === payment.proof_path)?.signedUrl ??
-              undefined;
-          });
-        }
         const admin = profiles.find((p) => p.id === userId)?.role === "admin";
         let slots: ClubData["slots"] = [],
           audit: Audit[] = [];
@@ -496,7 +484,7 @@ export default function Club() {
         if (request === requestVersion.current) setLoading(false);
       }
     },
-    [userId, demo],
+    [userId, demo, photoUrls],
   );
   useEffect(() => {
     void load();
