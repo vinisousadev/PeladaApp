@@ -45,6 +45,12 @@ test('reviews enforce checked rosters, independent scores, privacy, resumability
  assert.equal((await asUser(b,'select * from public.player_reviews')).rows.length,0);
  assert.equal((await asUser(admin,'select * from public.player_reviews')).rows.length,0);
  assert.equal((await asUser(a,`select * from public.player_review_results('${game}')`)).rows.length,0);
+ await assert.rejects(asUser(a,`select * from public.admin_player_review_results('${game}')`),/administrador/);
+ const partial=(await asUser(admin,`select * from public.admin_player_review_results('${game}') where player_id='${b}'`)).rows[0];
+ assert.equal(Number(partial.attack),5);
+ assert.equal(partial.defense,null);
+ assert.deepEqual(partial.attack_notes,[5]);
+ assert.deepEqual(partial.defense_notes,[]);
  await assert.rejects(asUser(a,`insert into public.player_reviews values('${game}','${b}','${c}',5,5,now())`));
  await assert.rejects(asUser(a,`update public.review_participants set waived_at=now()`));
  await assert.rejects(asUser(a,`select public.manage_player_reviews('${game}','waive','${b}')`),/administrador/);
@@ -59,6 +65,12 @@ test('reviews enforce checked rosters, independent scores, privacy, resumability
  await asUser(c,`select public.submit_player_review('${game}','${b}',3,4)`);
  assert.deepEqual(await pending(c),[]);
  const results=(await asUser(a,`select * from public.player_review_results('${game}') order by player_id`)).rows;
+ const adminResult=(await asUser(admin,`select * from public.admin_player_review_results('${game}') where player_id='${b}'`)).rows[0];
+ assert.equal(Number(adminResult.overall),4);
+ assert.deepEqual(adminResult.attack_notes,[3,5]);
+ assert.deepEqual(adminResult.defense_notes,[4]);
+ const unrated=(await asUser(admin,`select * from public.admin_player_review_results('${game}') where player_id='${a}'`)).rows[0];
+ assert.equal(unrated.overall,null);
  assert.deepEqual(results.map(r=>[r.player_id,Number(r.attack),Number(r.attack_count),Number(r.defense),Number(r.defense_count)]),[[a,0,0,0,0],[b,4,2,4,1],[c,0,0,3,1]]);
  await assert.rejects(asUser(a,`select public.submit_player_review('${game}','${b}',1,1)`),/encerrada/);
  await db.exec('begin;set local role anon;');await assert.rejects(db.query('select public.pending_player_reviews()'));await db.exec('rollback');
