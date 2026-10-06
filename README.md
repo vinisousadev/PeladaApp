@@ -72,3 +72,12 @@ Links assinados de fotos são reutilizados em memória durante a sessão, com re
 ## Troca de projeto Supabase — 06/10/2026
 
 A implantação passou a usar o projeto nczbfnuwqrqmeprjuqtt. URL e chave pública são configuradas no .env.local ignorado pelo Git e incorporadas no build estático; o .env não deve ser publicado no repositório. Os dados e contas foram copiados e verificados. Referências de fotos ausentes foram limpas no destino para permitir reenvio, preservando os resultados. Um comprovante não foi recuperado e precisa de reenvio; seu registro foi mantido. É necessário entrar novamente. Configurações de confirmação de e-mail e URLs de redirecionamento devem ser conferidas no painel do novo projeto.
+# Avaliações de ataque e defesa
+
+A migração `016_player_reviews.sql` adiciona votação após cada pelada. Ao encerrar na Administração, confira os confirmados e desmarque quem não jogou. A lista de avaliação fica fixa; a presença e o desempenho histórico não são apagados. Não há abertura automática de avaliações antigas.
+
+Cada participante avalia os demais com duas notas independentes (1–5): ataque e defesa. “Não consegui avaliar” em uma categoria salva uma resposta sem nota e não entra na média. Não há autoavaliação. O modal obrigatório salva por jogador, retoma após novo login e permite pedir ajuda ou sair da conta. A confirmação de novas presenças também é bloqueada no banco enquanto houver respostas pendentes.
+
+Em **Peladas** ou **Administração → Avaliações de ataque e defesa**, o administrador vê pedidos de ajuda, dispensa participantes e pode encerrar a votação antecipadamente. A votação encerra automaticamente quando todos terminam ou são dispensados; só então as médias e quantidades por categoria ficam disponíveis. Notas individuais só podem ser consultadas pelo próprio autor no aplicativo/API. Pontuação da carta e craque da pelada permanecem independentes. Reabrir os registros suspende a cobrança até novo encerramento, sem apagar votos; excluir uma pelada remove também sua votação.
+
+Validação: `npm test` verifica permissões, privacidade, médias, participantes e bloqueio de presença; `npm run test:e2e -- player-reviews.spec.ts` verifica o modal em celular com API simulada, erro de rede, retomada e bloqueio de fechamento. As avaliações usam o Supabase real; o modo demonstração mantém seu fluxo anterior.

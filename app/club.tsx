@@ -1,6 +1,7 @@
 "use client";
 
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
+import {ReviewGate, ReviewSetup, MatchReviews, refreshReviews} from "./player-reviews";
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
 import {removeClosedSession} from "@/lib/delete-session";
@@ -373,6 +374,7 @@ export default function Club() {
       window.scrollTo({ top: 0, behavior: "instant" });
     },
   };
+  const [reviewSetup, setReviewSetup] = useState<Match|null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null),
     [editing, setEditing] = useState<{
       session: Match;
@@ -841,6 +843,11 @@ export default function Club() {
  }
  async function toggleMatch(match: Match) {
     try {
+      if (!demo && match.status === 'open') {
+        const {data:round,error}=await getSupabase()!.from('review_rounds').select('session_id').eq('session_id',match.id).maybeSingle();
+        if(error)throw error;
+        if(!round){setReviewSetup(match);return;}
+      }
       const status = match.status === "open" ? "closed" : "open";
       if (demo)
         setData((d) => ({
@@ -966,7 +973,7 @@ export default function Club() {
       ? [{ id: "admin", label: "Administração", icon: ShieldCheck }]
       : []),
   ];
-  const renderMatch = (s:Match) => (<MatchRow profiles={data.profiles}
+  const renderMatch = (s:Match) => (<div key={s.id}><MatchRow profiles={data.profiles}
                       key={s.id}
                       confirmed={data.attendances.some(
                         (a) => a.session_id === s.id && a.player_id === me.id && a.status !== "waiting",
@@ -993,7 +1000,7 @@ export default function Club() {
                       )}
                       onClick={() => setEditing({ session: s, player: me })}
                       isAdmin={isAdmin}
-                    />);
+                    />{!demo&&<MatchReviews match={s} profiles={data.profiles} admin={Boolean(isAdmin)} onStart={()=>setReviewSetup(s)}/>}</div>);
   return (
     <div className="app-shell">
       {demo && (
@@ -1424,6 +1431,7 @@ export default function Club() {
           )}
           {view === "admin" && isAdmin && (
             <Admin
+              onReviewSetup={demo ? undefined : setReviewSetup}
               data={data}
               month={month}
               createMatch={createMatch}
@@ -1452,6 +1460,15 @@ export default function Club() {
           </footer>
         </main>
       </div>
+      {reviewSetup && <ReviewSetup key={reviewSetup.id} match={reviewSetup} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===reviewSetup.id&&a.player_id===p.id&&a.status!=='waiting'))} onCancel={()=>setReviewSetup(null)} onStart={async ids=>{
+        const {error}=await getSupabase()!.rpc('start_player_reviews',{p_session_id:reviewSetup.id,p_players:ids});
+        if(error)throw error;
+        setReviewSetup(null);
+        setNotice('Pelada encerrada. Avaliações de ataque e defesa abertas!');
+        await load();
+        refreshReviews();
+      }}/>}
+      {!demo && <ReviewGate key={me.id} profiles={data.profiles} me={me} logout={logout}/>}
       {selectedPlayer && (
         <Modal
           title="Carta do jogador"
@@ -1854,6 +1871,7 @@ function ProfileEditor({
 }
 
 function Admin({
+ onReviewSetup,
  setMembership,
  data,
   month,
@@ -1865,6 +1883,7 @@ function Admin({
   scheduleMatch,
   onEdit,
 }: {
+  onReviewSetup?: (s: Match) => void;
   setMembership: (p: Profile, membership: 'monthly'|'guest') => Promise<void>;
   data: ClubData;
  month: string;
@@ -2046,6 +2065,7 @@ function Admin({
                 </button>
                 <CancelSession session={s} save={cancelMatch}/>
                 <DeleteSession session={s} save={deleteMatch} disabled={busy}/>
+ {onReviewSetup&&<MatchReviews match={s} profiles={data.profiles} admin onStart={()=>onReviewSetup(s)}/>}
  <StarEditor match={s} save={saveStar} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id&&a.status!=='waiting'))}/>
               </div>
             ))}
