@@ -1,6 +1,7 @@
 "use client";
 
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
+import {AdminReviews} from "./admin-reviews";
 import {ReviewGate, ReviewSetup, MatchReviews, refreshReviews} from "./player-reviews";
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
@@ -1900,7 +1901,7 @@ function Admin({
     [time, setTime] = useState("20:00"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [section, setSection] = useState<"games" | "members" | "history">("games"),
+    [section, setSection] = useState<"games" | "members" | "history" | "reviews">("games"),
     [matchId, setMatchId] = useState(""),
     [playerId, setPlayerId] = useState("");
   async function action(fn: () => Promise<void>) {
@@ -1939,12 +1940,14 @@ function Admin({
         >
           <History size={16} /> Histórico
         </button>
+        <button aria-pressed={section === "reviews"} onClick={()=>setSection("reviews")}>Avaliações</button>
       </div>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
+      {section === "reviews" && <AdminReviews sessions={data.sessions} profiles={data.profiles} enabled={Boolean(onReviewSetup)}/>}
       {section === "games" && (
         <>
           <form
