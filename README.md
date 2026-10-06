@@ -68,3 +68,7 @@ As posições são sequenciais (1, 2, 3...), sem repetição. Em empate no crit�
 ## Redução do tráfego de imagens
 
 Links assinados de fotos são reutilizados em memória durante a sessão, com renovação um minuto antes de expirar. Atualizações a cada 30 segundos não trocam mais esses links. Mudanças de usuário ou modo demonstração criam um cache separado. Pedidos simultâneos compartilham a assinatura; falhas permitem nova tentativa. Comprovantes só são assinados e exibidos ao clicar em Comprovante. Nenhum bucket torna-se público e nenhuma migração é necessária. O consumo já contabilizado pelo Supabase não é reduzido retroativamente.
+
+## Troca de projeto Supabase — 06/10/2026
+
+A implantação passou a usar o projeto nczbfnuwqrqmeprjuqtt. URL e chave pública são configuradas no .env.local ignorado pelo Git e incorporadas no build estático; o .env não deve ser publicado no repositório. Os dados e contas foram copiados e verificados. Referências de fotos ausentes foram limpas no destino para permitir reenvio, preservando os resultados. Um comprovante não foi recuperado e precisa de reenvio; seu registro foi mantido. É necessário entrar novamente. Configurações de confirmação de e-mail e URLs de redirecionamento devem ser conferidas no painel do novo projeto.
