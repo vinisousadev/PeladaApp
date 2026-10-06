@@ -4,6 +4,7 @@ export const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.en
 export function getSupabase(){if(!configured)return null;client??=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);return client;}
 export function friendlyError(error:unknown){
  const e=error as {message?:string;code?:string};
+ if(e.message?.includes('Conclua a avaliação'))return e.message;
  if(e.message?.includes('admin_remove_attendance'))return 'Execute a migração 015 no Supabase para permitir a retirada de confirmados pelo administrador.';
  if(['retirar jogadores dos confirmados','retirar confirmados','Este jogador já tem desempenho','Este jogador é o craque'].some(text=>e.message?.includes(text)))return e.message!;
  if(['set_attendance_manual','manage_waitlist','create_manual_session'].some(name=>e.message?.includes(name)))return 'Execute a migração 014 no Supabase para ativar a confirmação manual e o controle da fila.';
