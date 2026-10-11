@@ -1461,7 +1461,14 @@ export default function Club() {
           </footer>
         </main>
       </div>
-      {reviewSetup && <ReviewSetup key={reviewSetup.id} match={reviewSetup} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===reviewSetup.id&&a.player_id===p.id&&a.status!=='waiting'))} onCancel={()=>setReviewSetup(null)} onStart={async ids=>{
+      {reviewSetup && <ReviewSetup key={reviewSetup.id} match={reviewSetup} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===reviewSetup.id&&a.player_id===p.id&&a.status!=='waiting'))} onCancel={()=>setReviewSetup(null)} onCloseWithoutReviews={async()=>{
+        const {data:changed,error}=await getSupabase()!.from('sessions').update({status:'closed'}).eq('id',reviewSetup.id).eq('status',reviewSetup.status).select('id');
+        if(error)throw error;
+        if(!changed?.length)throw Error('A pelada foi alterada. Atualize a página e tente novamente.');
+        setReviewSetup(null);
+        setNotice('Pelada encerrada sem abrir avaliações.');
+        await load();
+      }} onStart={async ids=>{
         const {error}=await getSupabase()!.rpc('start_player_reviews',{p_session_id:reviewSetup.id,p_players:ids});
         if(error)throw error;
         setReviewSetup(null);
