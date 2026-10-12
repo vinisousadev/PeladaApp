@@ -46,7 +46,7 @@ export function ReviewGate({profiles,me,logout}:{profiles:Profile[];me:Profile;l
  async function manage(action:'help'|'waive') {if(!round)return;setWorking(true);try{const {error}=await getSupabase()!.rpc('manage_player_reviews',{p_session_id:round.session_id,p_action:action,p_player_id:me.id});if(error)throw error;await reload();}catch(e){setError(message(e));}finally{setWorking(false);}}
  if(pending&&pending.length===0)return null;
  return <ReviewDialog label="Avaliação da pelada"><span className="eyebrow">RESENHA PÓS-JOGO</span><h1>A voz de quem jogou.</h1>
- {round?<><p>{round.name} · {dateLabel(round.played_on)}</p><p className="muted">Avalie ataque e defesa para continuar no clube. Suas notas individuais não são exibidas aos outros jogadores.</p>
+ {round?<><p>{round.name} · {dateLabel(round.played_on)}</p><p className="muted">Avalie ataque e defesa para continuar no clube. O administrador pode ver quem deu cada nota e corrigir avaliações. Os outros jogadores veem apenas as médias.</p>
  <div className="review-progress"><span>{round.total-round.targets.length} de {round.total} jogadores avaliados</span><progress max={round.total} value={round.total-round.targets.length}/></div>
  <Ballot key={`${round.session_id}-${round.targets[0].id}`} round={round} profiles={profiles} save={async(attack,defense)=>{saving.current=true;generation.current++;try{const {error}=await getSupabase()!.rpc('submit_player_review',{p_session_id:round.session_id,p_player_id:round.targets[0].id,p_attack:attack,p_defense:defense});if(error){void reload();throw error;}await reload();}finally{saving.current=false;}}}/>
  <p className="review-footnote">Seu progresso é salvo a cada jogador. “Não consegui avaliar” não altera a média.</p>
