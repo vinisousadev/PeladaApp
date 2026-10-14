@@ -33,4 +33,4 @@ export function attendanceWindow(match:Match,now=Date.now()){
  return {canConfirm:match.status==='open'&&now<start,canCancel:match.status==='open'&&now<=start-3600000,started:now>=start};
 }
 
-export function photoStyle(player:Profile){const x=player.photo_x??50,y=player.photo_y,z=player.photo_zoom??1;return {objectPosition:x+'% '+y+'%',transform:'scale('+z+')',transformOrigin:x+'% '+y+'%'};}
+export function photoStyle(player:Pick<Profile,'photo_x'|'photo_y'|'photo_zoom'>){const x=player.photo_x??50,y=player.photo_y,z=player.photo_zoom??1;return {objectPosition:x+'% '+y+'%',transform:'scale('+z+')',transformOrigin:x+'% '+y+'%'};}

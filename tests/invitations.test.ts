@@ -86,6 +86,16 @@ test('invited registrations enforce approval, privacy, provenance and reviewer a
  await asUser(admin,'select save_registration_photo()');
  assert.equal((await asUser(admin,'select public.is_admin() m')).rows[0].m,true);
  await assert.rejects(asUser(a,`update profiles set photo_path=null where id='${a}'`),/enviar sua foto/);
+
+ await db.exec(readFileSync(new URL('022_registration_photo_framing.sql',dir),'utf8'));
+ await assert.rejects(asUser(b,'select save_registration_photo(70,35,1.75)'),/Envie sua foto/);
+ await asUser(b,`insert into storage.objects(bucket_id,name) values('player-photos','${b}/registration.webp')`);
+ for(const args of ['-1,25,1','101,25,1','50,101,1','50,25,0.9','50,25,3.1','null,25,1',"50,25,'NaN'::numeric"])await assert.rejects(asUser(b,'select save_registration_photo('+args+')'),/Enquadramento/);
+ assert.equal((await asUser(b,`select photo_path from profiles where id='${b}'`)).rows[0].photo_path,null);
+ await asUser(b,'select save_registration_photo(70,35,1.75)');
+ const framing=(await asUser(b,`select photo_x,photo_y,photo_zoom from profiles where id='${b}'`)).rows[0];
+ assert.deepEqual([Number(framing.photo_x),Number(framing.photo_y),Number(framing.photo_zoom)],[70,35,1.75]);
+ await assert.rejects(asUser(b,'select save_registration_photo(0,0,1)'),/já tem uma foto/);
  await db.exec('begin;set local role anon;');
  assert.equal((await db.query<Record<string,unknown>>("select * from signup_inviters('Player')")).rows.length,8);
  assert.equal((await db.query<Record<string,unknown>>("select * from signup_inviters('P')")).rows.length,0);
