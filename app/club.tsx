@@ -716,7 +716,6 @@ export default function Club() {
   }
   async function setMembership(player: Profile, membership: 'monthly' | 'guest') {
  if(demo){
- if(membership==='monthly' && player.membership!=='monthly' && data.profiles.filter(p=>p.membership==='monthly').length>=24) throw Error('24 mensalistas');
  setData(d=>changeDemoMembership(d,player.id,membership));
  }else{const {error}=await getSupabase()!.rpc('set_membership_and_attendance',{p_player_id:player.id,p_membership:membership});if(error)throw error;await load();}
  setNotice('Tipo atualizado. A presença deve ser confirmada pelo jogador; as inscrições existentes foram mantidas.');
@@ -2079,10 +2078,9 @@ function Admin({
               <span className="badge">{data.profiles.length} jogadores</span>
             </div>
             <p className="muted">
-              Cada jogador cria a própria conta pelo site. Não é necessário
-              liberar acessos. Marque até 24 mensalistas: cada um confirma sua presença. Convidados aguardam liberação manual na fila.
+              Cada jogador cria a própria conta pelo site e aguarda a confirmação na aba Convites. Cadastre quantos mensalistas precisar. Cada um confirma sua presença; o limite é de 24 confirmados por pelada. Convidados aguardam liberação manual na fila.
  Voltar a convidado mantém as presenças existentes. Convidados entram por ordem de inscrição, conforme as vagas.
- Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length}/24.
+ Mensalistas: {data.profiles.filter(p=>p.membership==='monthly').length} cadastrados.
             </p>
           </div>
           <div className="section-space">

@@ -26,7 +26,6 @@ export function friendlyError(error:unknown){
  if(e.message?.includes('sessions_status_check'))return 'Execute a migração 008 no Supabase para ativar o cancelamento de peladas.';
  if(e.message?.includes('antes do início'))return 'Só é possível cancelar a pelada antes do início. Confira o horário.';
  if(e.message?.includes('pelada foi cancelada'))return 'Esta pelada foi cancelada. Crie outra pelada para jogar novamente.';
- if(e.message?.includes('24 mensalistas'))return 'O clube já tem 24 mensalistas. Altere um deles para convidado primeiro.';
  if(e.message?.includes('set_membership')||e.message?.includes('membership'))return 'Execute a migração 007 no Supabase para ativar mensalistas e a lista de espera.';
  if(e.message?.includes('fora da lista de espera'))return 'Você precisa estar confirmado, fora da lista de espera, para registrar o desempenho.';
  if(e.message?.includes('Apenas o administrador'))return 'Só o administrador pode alterar mensalistas.';

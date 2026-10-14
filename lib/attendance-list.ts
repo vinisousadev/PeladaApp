@@ -12,7 +12,5 @@ export function confirmedListText(match:Match,players:Profile[]){
 export function changeDemoMembership(data:ClubData,playerId:string,membership:'monthly'|'guest',now=Date.now()):ClubData{
  const player=data.profiles.find(p=>p.id===playerId);
  if(!player)throw Error('Jogador não encontrado.');
- const promoting=membership==='monthly'&&player.membership!=='monthly';
- if(promoting&&data.profiles.filter(p=>p.membership==='monthly').length>=24)throw Error('24 mensalistas');
  return {...data,profiles:data.profiles.map(p=>p.id===playerId?{...p,membership}:p)};
 }

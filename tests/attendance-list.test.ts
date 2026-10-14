@@ -21,3 +21,10 @@ test('Changing demo membership never enrolls players or undoes cancellations',()
  assert.equal(changeDemoMembership({...result,attendances:[]},'b','monthly',Date.parse('2026-09-30')).attendances.length,0);
  assert.equal(changeDemoMembership(result,'b','guest',Date.parse('2026-09-30')).attendances.length,0);
 });
+
+test('Demo allows more than 24 monthly members without changing attendance',()=>{
+ const data:ClubData={profiles:[...Array.from({length:24},(_,i)=>({...profiles[0],id:'monthly-'+i})),profiles[1]],sessions:[match],attendances:[],performances:[],payments:[],slots:[],audit:[]};
+ const result=changeDemoMembership(data,'b','monthly');
+ assert.equal(result.profiles.filter(p=>p.membership==='monthly').length,25);
+ assert.deepEqual(result.attendances,[]);
+});
