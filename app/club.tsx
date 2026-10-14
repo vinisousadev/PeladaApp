@@ -1,5 +1,7 @@
 "use client";
 
+import {MandatoryPhoto} from "./registration-photo";
+import {preparePhoto} from '@/lib/photo';
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
 import {AdminReviews} from "./admin-reviews";
@@ -211,7 +213,7 @@ function Auth({
             {mode === "login"
               ? "Entre para registrar seus números e ver o ranking."
               : mode === "signup"
-                ? "Crie sua conta e informe quem convidou você. Seu acesso será liberado após a confirmação do convite."
+                ? "Crie sua conta e informe quem convidou você. Depois, envie sua foto obrigatória para que seu convite possa ser confirmado."
                 : mode === "forgot"
                   ? "Enviaremos um link para o seu e-mail."
                   : "Escolha uma senha com pelo menos 8 caracteres."}
@@ -972,6 +974,7 @@ export default function Club() {
         </button>
       </main>
     );
+  if(!demo && me.requires_registration_photo && !me.photo_path)return <MandatoryPhoto userId={me.id} name={me.display_name} refresh={load} error={error} existing={!me.access_status||me.access_status==='approved'}/>;
   if(!demo && me.access_status && me.access_status!=='approved')return <RegistrationPending me={me} invitation={invitations.find(i=>i.player_id===me.id)} refresh={load} logout={logout} loading={loading} error={error}/>;
   const pendingInvites=demo ? 0 : invitations.filter(i=>i.status==='pending'&&(isAdmin||i.inviter_id===me.id)).length;
   const nav = [
@@ -1706,38 +1709,6 @@ async function fileAsDataURL(file: File): Promise<string> {
     r.onerror = reject;
     r.readAsDataURL(file);
   });
-}
-async function preparePhoto(file: File): Promise<File> {
-  if (
-    !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
-    file.size > 5242880
-  )
-    throw Error("Escolha uma foto JPG, PNG ou WebP de até 5 MB.");
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(Error("Não foi possível abrir essa foto."));
-      image.src = url;
-    });
-    const scale = Math.min(1, 1200 / Math.max(img.width, img.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
-    canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob(
-        (b) =>
-          b ? resolve(b) : reject(Error("Não foi possível preparar a foto.")),
-        "image/webp",
-        0.88,
-      ),
-    );
-    return new File([blob], "photo.webp", { type: "image/webp" });
-  } finally {
-    URL.revokeObjectURL(url);
-  }
 }
 function ProfileEditor({
   player,

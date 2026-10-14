@@ -54,8 +54,40 @@ test('invited registrations enforce approval, privacy, provenance and reviewer a
  assert.equal((await asUser(newcomer,`select invited_by from profiles where id='${newcomer}'`)).rows[0].invited_by,a);
  await db.exec(`insert into auth.users values('00000000-0000-0000-0000-000000000021','other@example.com','{"display_name":"Other Player","invited_by":"${newcomer}"}')`);
  await asUser(newcomer,"select review_registration('00000000-0000-0000-0000-000000000021',true,'pending')");
+
+ await db.exec(readFileSync(new URL('020_required_registration_photo.sql',dir),'utf8'));
+ const photoUser='00000000-0000-0000-0000-000000000022';
+ await db.exec(`insert into auth.users values('${photoUser}','photo@example.com','{"display_name":"Photo Player","invited_by":"${a}"}')`);
+ await assert.rejects(asUser(a,`select review_registration('${photoUser}',true,'pending')`),/enviar sua foto/);
+ await assert.rejects(asUser(admin,`select review_registration('${photoUser}',true,'pending')`),/enviar sua foto/);
+ await assert.rejects(asUser(photoUser,'select save_registration_photo()'),/Envie sua foto/);
+ await assert.rejects(asUser(photoUser,`update profiles set requires_registration_photo=false where id='${photoUser}'`),/permission denied/);
+ await assert.rejects(asUser(photoUser,`insert into storage.objects(bucket_id,name) values('player-photos','${a}/registration.webp')`));
+ await assert.rejects(asUser(photoUser,`insert into storage.objects(bucket_id,name) values('player-photos','${photoUser}/arbitrary.webp')`));
+ await asUser(photoUser,`insert into storage.objects(bucket_id,name) values('player-photos','${photoUser}/registration.webp')`);
+ assert.equal((await asUser(photoUser,'select * from storage.objects')).rows.length,1);
+ await asUser(photoUser,'select save_registration_photo()');
+ assert.equal((await asUser(a,`select has_photo from registration_invitations() where player_id='${photoUser}'`)).rows[0].has_photo,true);
+ await asUser(a,`select review_registration('${photoUser}',true,'pending')`);
+ assert.equal((await asUser(photoUser,`select photo_path from profiles where id='${photoUser}'`)).rows[0].photo_path,photoUser+'/registration.webp');
+
+ await db.exec(readFileSync(new URL('021_photo_required_for_all.sql',dir),'utf8'));
+ assert.equal((await asUser(a,'select public.is_member() m')).rows[0].m,false);
+ assert.equal((await asUser(admin,'select public.is_admin() m')).rows[0].m,false);
+ assert.equal((await asUser(a,'select * from sessions')).rows.length,0);
+ assert.equal((await asUser(a,'select * from profiles')).rows.length,1);
+ await assert.rejects(asUser(a,'select save_registration_photo()'),/Envie sua foto/);
+ await asUser(a,`insert into storage.objects(bucket_id,name) values('player-photos','${a}/registration.webp')`);
+ await asUser(a,'select save_registration_photo()');
+ assert.equal((await asUser(a,'select public.is_member() m')).rows[0].m,true);
+ assert.equal((await asUser(a,'select * from sessions')).rows.length,1);
+ assert.equal((await asUser(photoUser,'select public.is_member() m')).rows[0].m,true);
+ await asUser(admin,`insert into storage.objects(bucket_id,name) values('player-photos','${admin}/registration.webp')`);
+ await asUser(admin,'select save_registration_photo()');
+ assert.equal((await asUser(admin,'select public.is_admin() m')).rows[0].m,true);
+ await assert.rejects(asUser(a,`update profiles set photo_path=null where id='${a}'`),/enviar sua foto/);
  await db.exec('begin;set local role anon;');
- assert.equal((await db.query<Record<string,unknown>>("select * from signup_inviters('Player')")).rows.length,7);
+ assert.equal((await db.query<Record<string,unknown>>("select * from signup_inviters('Player')")).rows.length,8);
  assert.equal((await db.query<Record<string,unknown>>("select * from signup_inviters('P')")).rows.length,0);
  await db.exec('rollback');
  }finally{await db.close();}
