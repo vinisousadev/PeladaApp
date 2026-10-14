@@ -1,4 +1,4 @@
-export type Profile={id:string;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';membership?:'monthly'|'guest';favorite_club_id?:string|null;photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
+export type Profile={id:string;access_status?:'approved'|'pending'|'rejected';invited_by?:string|null;display_name:string;position:'GOL'|'DEF'|'MEI'|'ATA';role:'player'|'admin';membership?:'monthly'|'guest';favorite_club_id?:string|null;photo_path:string|null;photo_y:number;photo_x?:number;photo_zoom?:number;photo_url?:string};
 export type Match={star_player_id?:string|null;id:string;name:string;played_on:string;starts_at?:string|null;status:'open'|'closed'|'cancelled';created_by:string};
 export type Performance={id:string;session_id:string;player_id:string;goals:number;assists:number;revision:number;updated_at:string};
 export type Attendance={session_id:string;player_id:string;confirmed_at:string;status?:'confirmed'|'waiting';queue_order?:number};
@@ -19,7 +19,7 @@ export function inRankingPeriod(date:string,month:string){return isOpeningRankin
 export function rankingPeriodLabel(month:string){return isOpeningRanking(month)?'setembro + outubro de 2026':monthLabel(month);}
 export function rankPlayers(data:ClubData,month:string,criterion:'points'|'goals'|'assists'='points'):Ranked[]{
  const ids=new Set(data.sessions.filter(s=>s.status!=='cancelled'&&inRankingPeriod(s.played_on,month)).map(s=>s.id));
- const ranked=data.profiles.map(p=>{const rows=data.performances.filter(r=>r.player_id===p.id&&ids.has(r.session_id));const goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0);return {...p,goals,assists,points:monthlyScore(goals,assists),played:rows.length,rank:0};}).sort((a,b)=>b[criterion]-a[criterion]||a.display_name.localeCompare(b.display_name,'pt-BR',{sensitivity:'base'})||a.id.localeCompare(b.id));
+ const ranked=data.profiles.filter(p=>!p.access_status||p.access_status==='approved').map(p=>{const rows=data.performances.filter(r=>r.player_id===p.id&&ids.has(r.session_id));const goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0);return {...p,goals,assists,points:monthlyScore(goals,assists),played:rows.length,rank:0};}).sort((a,b)=>b[criterion]-a[criterion]||a.display_name.localeCompare(b.display_name,'pt-BR',{sensitivity:'base'})||a.id.localeCompare(b.id));
  return ranked.map((p,i)=>({...p,rank:i+1}));
 }
 export function validTotals(goals:number,assists:number){return [goals,assists].every(n=>Number.isInteger(n)&&n>=0&&n<=99);}

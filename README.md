@@ -85,3 +85,13 @@ Validação: `npm test` verifica permissões, privacidade, médias, participante
 A migração `017_admin_review_results.sql` adiciona **Administração → Avaliações**: seleção de pelada, médias de ataque/defesa, média geral de todas as notas válidas, contagem por categoria e notas recebidas sem autores. Apenas administradores consultam resultados parciais; os jogadores continuam vendo somente o resultado encerrado.
 
 A migração `018_review_corrections.sql` permite ao administrador ver quem votou e corrigir notas em Administração → Avaliações → Ver autores e corrigir. É obrigatório informar o motivo; o histórico preserva valores anteriores, autor do voto, administrador e data. Correções funcionam em votações abertas ou encerradas e recalculam as médias, com proteção contra sobrescrever alterações concorrentes. O botão Gerar lista de médias cria texto para copiar ou baixar em TXT, sem autores dos votos e com indicação de resultado parcial/final.
+
+## Cadastro por convite
+
+A migração `019_inviter_approval.sql` preserva os membros existentes como aprovados. Novos cadastros devem selecionar um membro aprovado no campo “Quem convidou você?” e começam pendentes. A busca pública mostra somente identificador, nome e posição dos jogadores aprovados (mínimo de duas letras, até 30 resultados), sem e-mails ou fotos.
+
+A aba **Convites** permite confirmar ou recusar os próprios convidados. O administrador vê todos os convites, o responsável pelo convite, a situação, quem analisou e quando; também pode aprovar, recusar ou reconsiderar uma recusa. O responsável é fixado pelo banco no cadastro e não muda com a edição de metadados da conta. Membros anteriores não recebem um responsável fictício.
+
+Pendentes e recusados podem entrar na conta apenas para consultar o próprio status e sair. As políticas do banco bloqueiam dados da pelada, fotos e novas presenças até a aprovação. A tela verifica a situação periodicamente e oferece “Verificar confirmação”. As regras de avaliações pendentes continuam valendo após a aprovação.
+
+Aplique a migração antes de publicar este frontend. Na implantação inicial de um banco vazio, crie o primeiro administrador antes da migração 019. Testes: `npm test` e `npm run test:e2e -- invitations.spec.ts` (cadastro, espera, aprovação e layout móvel com API simulada).

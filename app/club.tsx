@@ -1,6 +1,7 @@
 "use client";
 
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
+import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
 import {AdminReviews} from "./admin-reviews";
 import {ReviewGate, ReviewSetup, MatchReviews, refreshReviews} from "./player-reviews";
 import {MatchesBoard} from "./matches-board";
@@ -79,6 +80,7 @@ const EMPTY: ClubData = {
   audit: [],
 };
 type View =
+  | "invitations"
   | "overview"
   | "ranking"
   | "matches"
@@ -109,6 +111,7 @@ function Auth({
   setMode: (m: AuthMode) => void;
   onDemo: () => void;
 }) {
+  const [inviterId,setInviterId]=useState('');
   const [displayName, setDisplayName] = useState(""),
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
@@ -131,12 +134,13 @@ function Auth({
         if (error) throw error;
       }
       if (mode === "signup") {
+        if(!inviterId)throw Error('Selecione quem convidou você.');
         const { data, error } = await sb.auth.signUp({
           email: email.trim(),
           password,
           options: {
             emailRedirectTo: location.origin + "/",
-            data: { display_name: displayName.trim() },
+            data: { display_name: displayName.trim(), invited_by: inviterId },
           },
         });
         if (error) throw error;
@@ -207,7 +211,7 @@ function Auth({
             {mode === "login"
               ? "Entre para registrar seus números e ver o ranking."
               : mode === "signup"
-                ? "Crie sua conta com nome, e-mail e senha para entrar no clube."
+                ? "Crie sua conta e informe quem convidou você. Seu acesso será liberado após a confirmação do convite."
                 : mode === "forgot"
                   ? "Enviaremos um link para o seu e-mail."
                   : "Escolha uma senha com pelo menos 8 caracteres."}
@@ -233,6 +237,7 @@ function Auth({
                 />
               </label>
             )}
+            {mode === "signup" && <InviterPicker value={inviterId} onChange={setInviterId} disabled={!configured||busy}/>}
             {mode !== "recovery" && (
               <label>
                 E-mail
@@ -277,7 +282,7 @@ function Auth({
               disabled={
                 !configured ||
                 busy ||
-                (mode === "signup" && displayName.trim().length < 2)
+                (mode === "signup" && (displayName.trim().length < 2 || !inviterId))
               }
             >
               {busy
@@ -344,6 +349,7 @@ export default function Club() {
     [userId, setUserId] = useState<string | null>(null),
     [demo, setDemo] = useState(false),
     [demoRole, setDemoRole] = useState<"player" | "admin">("player");
+  const [invitations,setInvitations]=useState<Invitation[]>([]);
   const [data, setData] = useState<ClubData>(EMPTY),
     [month, setMonth] = useState(currentDate().slice(0, 7)),
     [sort, setSort] = useState<"points" | "goals" | "assists">("points"),
@@ -414,6 +420,7 @@ export default function Club() {
       if (event === "SIGNED_OUT") {
         requestVersion.current++;
         setData(EMPTY);
+        setInvitations([]);
         setView("overview");
       }
     });
@@ -442,9 +449,10 @@ export default function Club() {
           sb.from("performances").select("*"),
           sb.from("attendances").select("*"),
           sb.from("payments").select("*").order("submitted_at", { ascending: false }),
+          sb.rpc("registration_invitations"),
         ]);
         for (const r of results) if (r.error) throw r.error;
-        const profiles = (results[0].data ?? []) as Profile[];
+        const profiles = ((results[0].data ?? []) as Profile[]).filter(p=>!p.access_status||p.access_status==='approved'||p.id===userId);
         const paths = profiles
           .map((p) => p.photo_path)
           .filter((x): x is string => Boolean(x));
@@ -471,6 +479,7 @@ export default function Club() {
           audit = a.data ?? [];
         }
         if (request !== requestVersion.current) return;
+        setInvitations((results[5].data??[]) as Invitation[]);
         setData({
           profiles,
           sessions: results[1].data ?? [],
@@ -963,6 +972,8 @@ export default function Club() {
         </button>
       </main>
     );
+  if(!demo && me.access_status && me.access_status!=='approved')return <RegistrationPending me={me} invitation={invitations.find(i=>i.player_id===me.id)} refresh={load} logout={logout} loading={loading} error={error}/>;
+  const pendingInvites=demo ? 0 : invitations.filter(i=>i.status==='pending'&&(isAdmin||i.inviter_id===me.id)).length;
   const nav = [
     { id: "overview", label: "Visão geral", icon: Trophy },
     { id: "ranking", label: "Ranking", icon: ClipboardList },
@@ -970,6 +981,7 @@ export default function Club() {
     { id: "payments", label: "Pagamentos", icon: WalletCards },
     { id: "players", label: "Elenco", icon: Users },
     { id: "profile", label: "Minha carta", icon: Shirt },
+    { id: "invitations", label: pendingInvites ? `Convites (${pendingInvites})` : "Convites", icon: Users },
     ...(isAdmin
       ? [{ id: "admin", label: "Administração", icon: ShieldCheck }]
       : []),
@@ -1145,6 +1157,7 @@ export default function Club() {
               </button>
             </div>
           )}
+          {pendingInvites>0&&view!=="invitations"&&<div className="invitation-notice"><p>{pendingInvites} cadastro(s) aguardando confirmação de convite.</p><button className="primary" onClick={()=>setView("invitations")}>Ver convites</button></div>}
           {view === "overview" && (
             <>
               <div className="player-home">
@@ -1388,6 +1401,7 @@ export default function Club() {
               <MatchesBoard sessions={data.sessions} renderMatch={renderMatch}/>
             </section>
           )}
+          {view === "invitations" && <Invitations items={invitations} me={me} refresh={load} demo={demo}/>}
           {view === "payments" && (
             <PaymentsView
               profiles={data.profiles}
