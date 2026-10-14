@@ -15,10 +15,11 @@ test('reviews enforce checked rosters, independent scores, privacy, resumability
  alter table storage.objects enable row level security;grant select,insert,update,delete on storage.objects to authenticated;
  create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;`);
  const dir=new URL('../supabase/migrations/',import.meta.url);
- for(const file of readdirSync(dir).filter(f=>f.endsWith('.sql')).sort()) await db.exec(readFileSync(new URL(file,dir),'utf8'));
+ for(const file of readdirSync(dir).filter(f=>f.endsWith('.sql')&&f<'019').sort()) await db.exec(readFileSync(new URL(file,dir),'utf8'));
  const [admin,a,b,c,outsider]=[1,2,3,4,5].map(n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`);
  for(const [i,id] of [admin,a,b,c,outsider].entries())await db.exec(`insert into auth.users values('${id}','test${i}@example.com','{"display_name":"Player ${i}"}');`);
  await db.exec(`update public.profiles set role='admin' where id='${admin}';update public.profiles set membership='monthly';`);
+ await db.exec(readFileSync(new URL('019_inviter_approval.sql',dir),'utf8'));
  const game='00000000-0000-0000-0000-000000000010',next='00000000-0000-0000-0000-000000000011';
  await db.exec(`insert into public.sessions(id,name,played_on,starts_at,created_by) values('${game}','Review test',current_date,now()-interval '3 hours','${admin}'),('${next}','Next game',current_date,now()+interval '3 days','${admin}');
  insert into public.attendances(session_id,player_id,status) values('${game}','${a}','confirmed'),('${game}','${b}','confirmed'),('${game}','${c}','confirmed'),('${game}','${outsider}','waiting');`);
