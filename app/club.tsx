@@ -1,5 +1,6 @@
 "use client";
 
+import {MandatoryPhoto} from "./registration-photo";
 import {preparePhoto} from '@/lib/photo';
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
@@ -973,6 +974,7 @@ export default function Club() {
         </button>
       </main>
     );
+  if(!demo && me.requires_registration_photo && !me.photo_path)return <MandatoryPhoto userId={me.id} name={me.display_name} refresh={load} error={error} existing={!me.access_status||me.access_status==='approved'}/>;
   if(!demo && me.access_status && me.access_status!=='approved')return <RegistrationPending me={me} invitation={invitations.find(i=>i.player_id===me.id)} refresh={load} logout={logout} loading={loading} error={error}/>;
   const pendingInvites=demo ? 0 : invitations.filter(i=>i.status==='pending'&&(isAdmin||i.inviter_id===me.id)).length;
   const nav = [
