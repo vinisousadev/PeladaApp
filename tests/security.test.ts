@@ -322,6 +322,22 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await assert.rejects(asUser(admin,`select public.admin_remove_attendance('${removable}','${a}')`),/aberta/);
  await assert.rejects(asUser(admin,`select public.admin_remove_attendance('${queued}','${a}')`),/aberta/);
  assert.deepEqual((await db.query(`select * from public.attendances where session_id<>'${removable}' order by session_id,player_id`)).rows,otherAttendance);
+
+ await db.exec(readFileSync(new URL('../supabase/migrations/023_unlimited_monthly_members.sql',import.meta.url),'utf8'));
+ const rosterBefore=(await db.query('select * from attendances order by session_id,player_id')).rows;
+ const allPlayers=(await db.query<{id:string}>('select id from profiles order by id')).rows;
+ assert.ok(allPlayers.length>24);
+ await assert.rejects(asUser(a,`select public.set_membership_and_attendance('${outsider}','monthly')`),/administrador/);
+ for(const p of allPlayers)await asUser(admin,`select public.set_membership('${p.id}','monthly')`);
+ assert.equal((await db.query<{n:number}>("select count(*)::int n from profiles where membership='monthly'")).rows[0].n,allPlayers.length);
+ assert.deepEqual((await db.query('select * from attendances order by session_id,player_id')).rows,rosterBefore);
+ const unlimited='00000000-0000-0000-0000-000000000099';
+ await asUser(admin,`insert into sessions(id,name,played_on,starts_at,created_by) values('${unlimited}','Unlimited monthly',current_date,now()+interval '3 days','${admin}')`);
+ for(const p of allPlayers)await asUser(p.id,`select public.set_attendance_manual('${unlimited}',true)`);
+ assert.equal((await db.query<{n:number}>(`select count(*)::int n from attendances where session_id='${unlimited}' and status='confirmed'`)).rows[0].n,24);
+ assert.equal((await db.query<{n:number}>(`select count(*)::int n from attendances where session_id='${unlimited}' and status='waiting'`)).rows[0].n,allPlayers.length-24);
+ await asUser(admin,`select public.set_membership_and_attendance('${outsider}','guest')`);
+ assert.equal((await db.query<{membership:string}>(`select membership from profiles where id='${outsider}'`)).rows[0].membership,'guest');
  await db.close();
 });
 
