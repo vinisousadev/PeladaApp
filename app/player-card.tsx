@@ -3,6 +3,7 @@ import {useEffect,useRef} from 'react';
 import {motion,useAnimationControls,useInView,useMotionValue,useReducedMotion,useSpring} from 'motion/react';
 import {getFootballClub} from '@/lib/football-clubs';
 import {cardTier} from '@/lib/card-tier';
+import {cardDisplayName} from '@/lib/card-name';
 import {CardFrame} from './card-frame';
 import {type Ranked,rankingPeriodLabel,photoStyle} from '@/lib/model';
 export function PlayerCard({
@@ -78,7 +79,7 @@ export function PlayerCard({
           <span className="card-edition">PC / CLUB</span>
         </div>
         <div className="card-identity">
-          <h3 title={player.display_name}><span>{player.display_name}</span></h3>
+          <h3 title={player.display_name}><span>{cardDisplayName(player.display_name)}</span></h3>
           <span>{rankingPeriodLabel(month)}</span>
         </div>
         <div className="card-stats">

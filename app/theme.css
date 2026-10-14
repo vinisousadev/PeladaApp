@@ -243,7 +243,6 @@ h1,h2,h3,.brand,.card-rating strong,.card-stats strong,.personal-numbers b{font-
 .remove-confirmed{width:100%;margin-top:6px}.remove-confirmed p{font-size:.8rem;line-height:1.5;margin:8px 0}.remove-confirmed-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.remove-confirmed-actions .secondary{padding:8px 12px;font-size:.8rem}
 .ranking-period-note{padding:12px 16px;margin:0 0 20px;border-left:3px solid #ffd52a;border-radius:0 8px 8px 0;background:#ffd52a0d;color:var(--muted);font-size:.85rem;line-height:1.6}
 
-/* Reserve two name lines upward over the photo, preserving the card height. */
-.football-card .card-identity h3{line-height:1.08;height:2.16em;min-height:2.16em;max-height:none;margin:-1.08em 0 0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-.football-card .card-identity h3>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;width:100%;line-height:inherit}
-.football-card .card-identity{display:flow-root}
+/* One display line: first name and second-name initial, without lifting into the crest. */
+.football-card .card-identity h3{line-height:1.08;height:1.08em;min-height:1.08em;max-height:none;margin:0;display:block;overflow:hidden;white-space:nowrap}
+.football-card .card-identity h3>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;line-height:inherit}
