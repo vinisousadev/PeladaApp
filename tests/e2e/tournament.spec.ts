@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-for(const role of ['admin','player'])test(`tournament ${role}: mobile controls, clock persistence and shared results`,async({page})=>{
+for(const role of ['admin','player'])test(`tournament ${role}: mobile score controls and shared results without clocks`,async({page})=>{
  await page.setViewportSize({width:390,height:844});
  const me='00000000-0000-0000-0000-000000000001';
  const teams=['Amarelo','Branco','Laranja','Azul'].map((name,i)=>({slot:i+1,name,players:[]}));
@@ -15,8 +15,6 @@ for(const role of ['admin','player'])test(`tournament ${role}: mobile controls, 
  if(resource==='sessions')body=[{id:'match',name:'Pelada de quinta',played_on:'2026-10-16',status:'open',created_by:me}];
  if(resource==='manage_tournament'){
  const request=route.request().postDataJSON();requests.push(request);revision++;
- if(request.p_action==='start')games[0].timer_started_at=new Date(Date.now()-61000).toISOString();
- if(request.p_action==='pause'){games[0].remaining_seconds=418;games[0].timer_started_at=null;}
  if(request.p_action==='score'){games[0].home_score=request.p_payload.home_score;games[0].away_score=request.p_payload.away_score;}
  }
  if(resource==='get_tournament'||resource==='manage_tournament')body={revision,teams,games,standings,server_time:new Date().toISOString()};
@@ -26,10 +24,8 @@ for(const role of ['admin','player'])test(`tournament ${role}: mobile controls, 
  await expect(page.getByRole('heading',{name:'Campeonato da pelada'})).toBeVisible();
  await expect(page.locator('.tournament-game')).toHaveCount(6);
  const first=page.getByRole('article',{name:'Jogo 1',exact:true});
+ await expect(page.locator('.tournament time')).toHaveCount(0);await expect(page.locator('.tournament').getByRole('button',{name:/Iniciar|Pausar|Voltar a 8/})).toHaveCount(0);
  if(role==='admin'){
- await first.getByRole('button',{name:'Iniciar',exact:true}).click();await expect(first.locator('time')).toHaveText(/06:5[0-9]/);
- await page.reload();await page.getByRole('button',{name:/^Campeonato/}).click();await expect(first.locator('time')).toHaveText(/06:5[0-9]/);
- await first.getByRole('button',{name:'Pausar'}).click();await expect(first.locator('time')).toHaveText('06:58');
  await first.getByRole('spinbutton',{name:/Gols de Amarelo/}).fill('2');await first.getByRole('button',{name:'Salvar placar'}).click();
  expect(requests.at(-1)).toMatchObject({p_action:'score',p_payload:{number:1,home_score:2,away_score:0}});
  await expect(page.getByRole('button',{name:/Gerar semifinais/})).toBeDisabled();
