@@ -6,6 +6,7 @@ import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
 import {AdminReviews} from "./admin-reviews";
 import {ReviewGate, ReviewSetup, MatchReviews, refreshReviews} from "./player-reviews";
+import {Tournament} from "./tournament";
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
 import {removeClosedSession} from "@/lib/delete-session";
@@ -86,6 +87,7 @@ type View =
   | "overview"
   | "ranking"
   | "matches"
+  | "tournament"
   | "payments"
   | "players"
   | "profile"
@@ -980,6 +982,7 @@ export default function Club() {
     { id: "overview", label: "Visão geral", icon: Trophy },
     { id: "ranking", label: "Ranking", icon: ClipboardList },
     { id: "matches", label: "Peladas", icon: Goal },
+    { id: "tournament", label: "Campeonato", icon: Trophy },
     { id: "payments", label: "Pagamentos", icon: WalletCards },
     { id: "players", label: "Elenco", icon: Users },
     { id: "profile", label: "Minha carta", icon: Shirt },
@@ -1114,6 +1117,8 @@ export default function Club() {
                   ? "Seu futebol em destaque."
                   : view === "ranking"
                     ? "O ranking da turma."
+                    : view === "tournament"
+                      ? "Campeonato"
                     : view === "matches"
                       ? "Dentro de campo."
                       : view === "payments"
@@ -1125,7 +1130,7 @@ export default function Club() {
                           : "Tudo sob controle."}
               </h1>
             </div>
-            {view !== "matches" && <label className="month-picker">
+            {view !== "matches" && view !== "tournament" && <label className="month-picker">
               {view === "payments" ? "Mês do pagamento" : "Mês do ranking"}
               <input
                 aria-label={
@@ -1139,7 +1144,7 @@ export default function Club() {
               />
             </label>}
           </div>
-          {view !== "payments" && view !== "matches" && isOpeningRanking(month) && (
+          {view !== "payments" && view !== "matches" && view !== "tournament" && isOpeningRanking(month) && (
             <p className="ranking-period-note">Primeiro período: setembro + outubro de 2026. Os pontos acumulam até 31/10; o próximo ranking começa em 01/11, com 50 pontos.</p>
           )}
           {error && (
@@ -1388,6 +1393,7 @@ export default function Club() {
               </p>
             </section>
           )}
+          {view === "tournament" && <Tournament data={data} isAdmin={isAdmin} demo={demo}/>}
           {view === "matches" && (
             <section>
               <div className="section-heading">
@@ -1492,7 +1498,7 @@ export default function Club() {
         await load();
         refreshReviews();
       }}/>}
-      {!demo && <ReviewGate key={me.id} profiles={data.profiles} me={me} logout={logout}/>}
+      {!demo && <ReviewGate key={me.id} profiles={data.profiles}/>}
       {selectedPlayer && (
         <Modal
           title="Carta do jogador"

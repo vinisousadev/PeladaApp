@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,readdirSync} from 'node:fs';
+import {PGlite} from '@electric-sql/pglite';
+
+test('tournament permissions, round robin, timers, seeds, draw rules, corrections and concurrency',async()=>{
+ const db=new PGlite();
+ try{
+ await db.exec(`create role anon;create role authenticated;create schema auth;create schema storage;
+ create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb);
+ create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ grant usage on schema auth,public,storage to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;
+ create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+ create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);
+ alter table storage.objects enable row level security;grant select,insert,update,delete on storage.objects to authenticated;
+ create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;`);
+ const dir=new URL('../supabase/migrations/',import.meta.url);
+ for(const file of readdirSync(dir).filter(f=>f.endsWith('.sql')&&f<'019').sort())await db.exec(readFileSync(new URL(file,dir),'utf8'));
+ const admin='00000000-0000-0000-0000-000000000001',player='00000000-0000-0000-0000-000000000002',session='00000000-0000-0000-0000-000000000010';
+ await db.exec(`insert into auth.users values('${admin}','admin@example.com','{"display_name":"Admin"}'),('${player}','player@example.com','{"display_name":"Player"}');update public.profiles set role='admin' where id='${admin}';`);
+ for(const file of readdirSync(dir).filter(f=>f.endsWith('.sql')&&f>='019'&&f<'024').sort())await db.exec(readFileSync(new URL(file,dir),'utf8'));
+ await db.exec(`insert into storage.objects(bucket_id,name) select 'player-photos',id::text||'/registration.webp' from public.profiles;update public.profiles set photo_path=id::text||'/registration.webp';insert into public.sessions(id,name,played_on,starts_at,created_by) values('${session}','Tournament',current_date,now(),'${admin}');insert into public.attendances(session_id,player_id,status) values('${session}','${player}','confirmed');`);
+ await db.exec(readFileSync(new URL('024_tournaments.sql',dir),'utf8'));
+ async function asUser(id:string,sql:string,params:unknown[]=[]){await db.exec(`begin;set local role authenticated;set local "request.jwt.claim.sub"='${id}';`);try{const result=await db.query<any>(sql,params);await db.exec('commit');return result;}catch(e){await db.exec('rollback');throw e;}}
+ let snapshot:any={revision:null};
+ const call=async(action:string,payload:unknown={},id=admin,revision=snapshot.revision)=>{const result=await asUser(id,'select public.manage_tournament($1,$2,$3,$4) result',[session,revision,action,JSON.stringify(payload)]);snapshot=result.rows[0].result;return snapshot;};
+ const teams=['Amarelo','Branco','Laranja','Azul'].map(name=>({name,players:[]}));
+ await assert.rejects(call('teams',{teams},player),/administrador/);
+ await assert.rejects(asUser(admin,`insert into public.tournaments(session_id) values('${session}')`),/permission denied/);
+ await assert.rejects(call('teams',{teams:teams.slice(0,3)}),/quatro/);
+ await assert.rejects(call('teams',{teams:teams.map(t=>({...t,players:[player]}))}),/um time/);
+ await call('teams',{teams});
+ assert.equal(snapshot.games.length,6);
+ assert.equal(new Set(snapshot.games.map((g:any)=>[g.home,g.away].sort().join('-'))).size,6);
+ for(let slot=1;slot<=4;slot++)assert.equal(snapshot.games.filter((g:any)=>g.home===slot||g.away===slot).length,3);
+ assert.equal((await asUser(player,'select public.get_tournament($1) result',[session])).rows[0].result.games.length,6);
+ await assert.rejects(call('semis'),/seis jogos/);
+ await call('start',{number:1});assert.ok(snapshot.games[0].timer_started_at);
+ await assert.rejects(call('start',{number:2}),/Pause/);
+ await assert.rejects(call('teams',{teams}),/antes de iniciar/);
+ await db.exec(`update public.tournament_games set timer_started_at=now()-interval '65 seconds' where session_id='${session}' and number=1;`);
+ await call('pause',{number:1});assert.ok(snapshot.games[0].remaining_seconds<=415&&snapshot.games[0].remaining_seconds>=414);
+ await call('reset_timer',{number:1});assert.equal(snapshot.games[0].remaining_seconds,480);
+ await call('score',{number:1,home_score:2,away_score:0});assert.equal(snapshot.standings.every((s:any)=>s.played===0),true);
+ await assert.rejects(call('score',{number:1,home_score:-1,away_score:0}),/0 e 99/);
+ await assert.rejects(call('score',{number:1,home_score:1,away_score:0},admin,0),/outro administrador/);
+ // 1 beats 2, 3 beats 4, 1 beats 3, 2 beats 4, 1 beats 4, 2 draws 3.
+ for(const [number,home_score,away_score] of [[1,2,0],[2,1,0],[3,3,0],[4,2,0],[5,1,0],[6,1,1]])await call('finish',{number,home_score,away_score});
+ assert.deepEqual(snapshot.standings.map((s:any)=>s.slot),[1,2,3,4]);
+ assert.deepEqual(snapshot.standings.map((s:any)=>s.points),[9,4,4,0]);
+ await call('semis');assert.deepEqual(snapshot.games.slice(6).map((g:any)=>[g.home,g.away]),[[1,4],[3,2]]);
+ await assert.rejects(call('reopen',{number:1}),/Desfaça/);
+ await call('finish',{number:7,home_score:0,away_score:0,winner:4});assert.equal(snapshot.games[6].winner,1);
+ await assert.rejects(call('finish',{number:8,home_score:1,away_score:1}),/pênaltis/);
+ await assert.rejects(call('finish',{number:8,home_score:1,away_score:1,winner:1}),/pênaltis/);
+ await call('finish',{number:8,home_score:1,away_score:1,winner:3});
+ await call('final');assert.deepEqual([snapshot.games[8].home,snapshot.games[8].away],[1,3]);
+ await assert.rejects(call('finish',{number:9,home_score:0,away_score:0}),/pênaltis/);
+ await call('finish',{number:9,home_score:0,away_score:0,winner:3});assert.equal(snapshot.games[8].winner,3);
+ await call('reset_bracket');assert.equal(snapshot.games.length,6);
+ await call('reopen',{number:1});await call('finish',{number:1,home_score:0,away_score:9});
+ await call('semis');assert.equal(snapshot.games[6].home,2);
+ assert.equal((await db.query('select * from public.performances')).rows.length,0);
+ await db.exec(`update public.sessions set starts_at=now()+interval '1 day' where id='${session}'`);
+ await asUser(admin,`update public.sessions set status='cancelled' where id='${session}'`);
+ await assert.rejects(call('reset_bracket'),/cancelada/);
+ await db.exec(`update public.profiles set access_status='pending' where id='${player}'`);
+ await assert.rejects(asUser(player,'select public.get_tournament($1)',[session]),/não autorizado/);
+ }finally{await db.close();}
+});

@@ -21,7 +21,7 @@ test('mandatory review modal saves attack and defense independently, resumes, an
  });
  await page.goto('/');
  const modal=page.getByRole('dialog',{name:'Avaliação da pelada'});
- await expect(modal).toBeVisible();await expect(modal.getByRole('heading',{name:'Bruno'})).toBeVisible();
+ await expect(modal).toBeVisible();await expect(modal).toContainText('É obrigatório preencher');await expect(modal.getByRole('button',{name:/Sair|Dispensar|Fechar|Preciso de ajuda/})).toHaveCount(0);await expect(modal.getByRole('heading',{name:'Bruno'})).toBeVisible();
  await page.keyboard.press('Escape');await expect(modal).toBeVisible();
  await page.mouse.click(2,2);await expect(modal).toBeVisible();
  const save=modal.getByRole('button',{name:'Salvar e continuar'});
@@ -39,4 +39,17 @@ test('mandatory review modal saves attack and defense independently, resumes, an
  await page.screenshot({path:'test-results/player-review-mobile.png'});
  await modal.getByRole('button',{name:'Concluir avaliação'}).click();await expect(modal).not.toBeVisible();
  expect(saved[1]).toMatchObject({p_attack:null,p_defense:5,p_player_id:'c'});
+});
+
+test('closing records opens mandatory reviews in an already open app',async({page})=>{
+ const me='00000000-0000-0000-0000-000000000001';let closed=false;
+ await page.addInitScript(me=>localStorage.setItem('sb-nczbfnuwqrqmeprjuqtt-auth-token',JSON.stringify({access_token:'test.payload.signature',refresh_token:'test',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:{id:me,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{}}})),me);
+ await page.route('**/*.supabase.co/**',async route=>{const resource=new URL(route.request().url()).pathname.split('/').pop();let body:unknown=[];
+ if(resource==='profiles')body=[{id:me,display_name:'Admin',role:'admin',position:'MEI',photo_path:null,photo_y:50}];
+ if(resource==='pending_player_reviews'&&closed)body=[{session_id:'match',name:'Pelada encerrada',played_on:'2026-10-16',help_requested:false,total:1,targets:[{id:'other',name:'Outro jogador'}]}];
+ await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});});
+ await page.goto('/');const modal=page.getByRole('dialog',{name:'Avaliação da pelada'});
+ await expect(page.getByRole('button',{name:'Administração',exact:true})).toBeVisible();await expect(modal).toHaveCount(0);
+ closed=true;await expect(modal).toBeVisible({timeout:8000});await expect(modal.getByRole('button',{name:/Sair|Dispensar|Fechar/})).toHaveCount(0);
+ await page.keyboard.press('Escape');await expect(modal).toBeVisible();
 });
