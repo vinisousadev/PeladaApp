@@ -37,30 +37,27 @@ function Ballot({round,profiles,save}:{round:Pending;profiles:Profile[];save:(at
  </form>;
 }
 
-export function ReviewGate({profiles,me,logout}:{profiles:Profile[];me:Profile;logout:()=>Promise<void>}) {
- const [pending,setPending]=useState<Pending[]|null>(null),[error,setError]=useState(''),[working,setWorking]=useState(false);
+export function ReviewGate({profiles}:{profiles:Profile[]}) {
+ const [pending,setPending]=useState<Pending[]|null>(null),[error,setError]=useState('');
  const generation=useRef(0),saving=useRef(false);
  const reload=useCallback(async()=>{const version=++generation.current;const {data,error}=await getSupabase()!.rpc('pending_player_reviews');if(version!==generation.current)return;if(error){setError(message(error));return;}setPending(data??[]);setError('');},[]);
- useEffect(()=>{const update=()=>{if(!document.hidden&&!saving.current)void reload();};void reload();const timer=setInterval(update,30000);window.addEventListener('focus',update);window.addEventListener('pelada-reviews',update);return()=>{generation.current++;clearInterval(timer);window.removeEventListener('focus',update);window.removeEventListener('pelada-reviews',update);};},[reload]);
+ useEffect(()=>{const update=()=>{if(!document.hidden&&!saving.current)void reload();};void reload();const timer=setInterval(update,5000);window.addEventListener('focus',update);window.addEventListener('pelada-reviews',update);document.addEventListener('visibilitychange',update);return()=>{generation.current++;clearInterval(timer);window.removeEventListener('focus',update);window.removeEventListener('pelada-reviews',update);document.removeEventListener('visibilitychange',update);};},[reload]);
  const round=pending?.[0];
- async function manage(action:'help'|'waive') {if(!round)return;setWorking(true);try{const {error}=await getSupabase()!.rpc('manage_player_reviews',{p_session_id:round.session_id,p_action:action,p_player_id:me.id});if(error)throw error;await reload();}catch(e){setError(message(e));}finally{setWorking(false);}}
  if(pending&&pending.length===0)return null;
  return <ReviewDialog label="Avaliação da pelada"><span className="eyebrow">RESENHA PÓS-JOGO</span><h1>A voz de quem jogou.</h1>
- {round?<><p>{round.name} · {dateLabel(round.played_on)}</p><p className="muted">Avalie ataque e defesa para continuar no clube. O administrador pode ver quem deu cada nota e corrigir avaliações. Os outros jogadores veem apenas as médias.</p>
+ {round?<><p>{round.name} · {dateLabel(round.played_on)}</p><p className="muted">É obrigatório preencher as avaliações de ataque e defesa para continuar usando o app. Este modal só fecha após concluir todas as avaliações pendentes. O administrador pode ver quem deu cada nota e corrigir avaliações. Os outros jogadores veem apenas as médias.</p>
  <div className="review-progress"><span>{round.total-round.targets.length} de {round.total} jogadores avaliados</span><progress max={round.total} value={round.total-round.targets.length}/></div>
  <Ballot key={`${round.session_id}-${round.targets[0].id}`} round={round} profiles={profiles} save={async(attack,defense)=>{saving.current=true;generation.current++;try{const {error}=await getSupabase()!.rpc('submit_player_review',{p_session_id:round.session_id,p_player_id:round.targets[0].id,p_attack:attack,p_defense:defense});if(error){void reload();throw error;}await reload();}finally{saving.current=false;}}}/>
  <p className="review-footnote">Seu progresso é salvo a cada jogador. “Não consegui avaliar” não altera a média.</p>
- {round.help_requested?<p role="status">Pedido de ajuda enviado. O administrador pode dispensar sua avaliação.</p>:<button className="text-button" disabled={working} onClick={()=>manage('help')}>Preciso de ajuda</button>}
- {me.role==='admin'&&<button className="text-button" disabled={working} onClick={()=>{if(window.confirm('Dispensar sua própria avaliação desta pelada?'))void manage('waive');}}>Dispensar minha avaliação (administrador)</button>}
  </>:<p role="status">Conferindo suas avaliações…</p>}
  {error&&<div className="error" role="alert">{error}<button className="secondary" onClick={()=>reload()}>Tentar novamente</button></div>}
- <button className="text-button" onClick={logout}>Sair da conta</button></ReviewDialog>;
+ </ReviewDialog>;
 }
 
 export function ReviewSetup({match,players,onCancel,onStart,onCloseWithoutReviews}:{match:Match;players:Profile[];onCancel:()=>void;onStart:(ids:string[])=>Promise<void>;onCloseWithoutReviews:()=>Promise<void>}) {
  const [selected,setSelected]=useState(players.map(p=>p.id)),[busy,setBusy]=useState(false),[error,setError]=useState('');
- return <ReviewDialog label="Conferir quem jogou"><span className="eyebrow">APITO FINAL</span><h2>Quem entrou em campo?</h2><p>{match.name}</p><p className="muted">Desmarque quem faltou. Só os selecionados avaliam e recebem notas. Para testes ou peladas sem participantes suficientes, encerre sem avaliações.</p><div className="review-roster">{players.map(p=><label key={p.id}><input type="checkbox" disabled={busy} checked={selected.includes(p.id)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,p.id]:ids.filter(id=>id!==p.id))}/>{p.display_name}</label>)}</div>
- <p>{selected.length} participantes · mínimo de 2 somente para abrir avaliações</p>{error&&<p className="error" role="alert">{error}</p>}<button className="primary full" disabled={busy||selected.length<2} onClick={async()=>{setBusy(true);setError('');try{await onStart(selected);}catch(e){setError(message(e));}finally{setBusy(false);}}}>{busy?'Abrindo avaliações…':'Encerrar pelada e abrir avaliações'}</button><button className="secondary full" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await onCloseWithoutReviews();}catch(e){setError(message(e));}finally{setBusy(false);}}}>{busy?'Salvando…':'Encerrar sem avaliações'}</button><button className="secondary full" disabled={busy} onClick={onCancel}>Voltar</button></ReviewDialog>;
+ return <ReviewDialog label="Conferir quem jogou"><span className="eyebrow">APITO FINAL</span><h2>Quem entrou em campo?</h2><p>{match.name}</p><p className="muted">Desmarque quem faltou. Só os selecionados avaliam e recebem notas. Ao encerrar, a avaliação obrigatória será aberta para quem jogou. Sem o mínimo de dois participantes, você pode encerrar sem avaliações.</p><div className="review-roster">{players.map(p=><label key={p.id}><input type="checkbox" disabled={busy} checked={selected.includes(p.id)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,p.id]:ids.filter(id=>id!==p.id))}/>{p.display_name}</label>)}</div>
+ <p>{selected.length} participantes · mínimo de 2 somente para abrir avaliações</p>{error&&<p className="error" role="alert">{error}</p>}<button className="primary full" disabled={busy||selected.length<2} onClick={async()=>{setBusy(true);setError('');try{await onStart(selected);}catch(e){setError(message(e));}finally{setBusy(false);}}}>{busy?'Abrindo avaliações…':'Encerrar pelada e abrir avaliações'}</button>{selected.length<2&&<button className="secondary full" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await onCloseWithoutReviews();}catch(e){setError(message(e));}finally{setBusy(false);}}}>{busy?'Salvando…':'Encerrar sem avaliações'}</button>}<button className="secondary full" disabled={busy} onClick={onCancel}>Voltar</button></ReviewDialog>;
 }
 
 export function MatchReviews({match,profiles,admin,onStart}:{match:Match;profiles:Profile[];admin:boolean;onStart:()=>void}) {
