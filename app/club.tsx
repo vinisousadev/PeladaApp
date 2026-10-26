@@ -4,8 +4,6 @@ import {MandatoryPhoto} from "./registration-photo";
 import {preparePhoto} from '@/lib/photo';
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
-import {AdminReviews} from "./admin-reviews";
-import {ReviewGate, ReviewSetup, MatchReviews, refreshReviews} from "./player-reviews";
 import {Tournament} from "./tournament";
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
@@ -385,7 +383,6 @@ export default function Club() {
       window.scrollTo({ top: 0, behavior: "instant" });
     },
   };
-  const [reviewSetup, setReviewSetup] = useState<Match|null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null),
     [editing, setEditing] = useState<{
       session: Match;
@@ -856,11 +853,6 @@ export default function Club() {
  }
  async function toggleMatch(match: Match) {
     try {
-      if (!demo && match.status === 'open') {
-        const {data:round,error}=await getSupabase()!.from('review_rounds').select('session_id').eq('session_id',match.id).maybeSingle();
-        if(error)throw error;
-        if(!round){setReviewSetup(match);return;}
-      }
       const status = match.status === "open" ? "closed" : "open";
       if (demo)
         setData((d) => ({
@@ -1018,7 +1010,7 @@ export default function Club() {
                       )}
                       onClick={() => setEditing({ session: s, player: me })}
                       isAdmin={isAdmin}
-                    />{!demo&&<MatchReviews match={s} profiles={data.profiles} admin={Boolean(isAdmin)} onStart={()=>setReviewSetup(s)}/>}</div>);
+                    /></div>);
   return (
     <div className="app-shell">
       {demo && (
@@ -1454,7 +1446,6 @@ export default function Club() {
           )}
           {view === "admin" && isAdmin && (
             <Admin
-              onReviewSetup={demo ? undefined : setReviewSetup}
               data={data}
               month={month}
               createMatch={createMatch}
@@ -1483,22 +1474,6 @@ export default function Club() {
           </footer>
         </main>
       </div>
-      {reviewSetup && <ReviewSetup key={reviewSetup.id} match={reviewSetup} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===reviewSetup.id&&a.player_id===p.id&&a.status!=='waiting'))} onCancel={()=>setReviewSetup(null)} onCloseWithoutReviews={async()=>{
-        const {data:changed,error}=await getSupabase()!.from('sessions').update({status:'closed'}).eq('id',reviewSetup.id).eq('status',reviewSetup.status).select('id');
-        if(error)throw error;
-        if(!changed?.length)throw Error('A pelada foi alterada. Atualize a página e tente novamente.');
-        setReviewSetup(null);
-        setNotice('Pelada encerrada sem abrir avaliações.');
-        await load();
-      }} onStart={async ids=>{
-        const {error}=await getSupabase()!.rpc('start_player_reviews',{p_session_id:reviewSetup.id,p_players:ids});
-        if(error)throw error;
-        setReviewSetup(null);
-        setNotice('Pelada encerrada. Avaliações de ataque e defesa abertas!');
-        await load();
-        refreshReviews();
-      }}/>}
-      {!demo && <ReviewGate key={me.id} profiles={data.profiles}/>}
       {selectedPlayer && (
         <Modal
           title="Carta do jogador"
@@ -1869,7 +1844,6 @@ function ProfileEditor({
 }
 
 function Admin({
- onReviewSetup,
  setMembership,
  data,
   month,
@@ -1881,7 +1855,6 @@ function Admin({
   scheduleMatch,
   onEdit,
 }: {
-  onReviewSetup?: (s: Match) => void;
   setMembership: (p: Profile, membership: 'monthly'|'guest') => Promise<void>;
   data: ClubData;
  month: string;
@@ -1898,7 +1871,7 @@ function Admin({
     [time, setTime] = useState("20:00"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [section, setSection] = useState<"games" | "members" | "history" | "reviews">("games"),
+    [section, setSection] = useState<"games" | "members" | "history">("games"),
     [matchId, setMatchId] = useState(""),
     [playerId, setPlayerId] = useState("");
   async function action(fn: () => Promise<void>) {
@@ -1937,14 +1910,12 @@ function Admin({
         >
           <History size={16} /> Histórico
         </button>
-        <button aria-pressed={section === "reviews"} onClick={()=>setSection("reviews")}>Avaliações</button>
       </div>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-      {section === "reviews" && <AdminReviews sessions={data.sessions} profiles={data.profiles} enabled={Boolean(onReviewSetup)}/>}
       {section === "games" && (
         <>
           <form
@@ -2065,7 +2036,6 @@ function Admin({
                 </button>
                 <CancelSession session={s} save={cancelMatch}/>
                 <DeleteSession session={s} save={deleteMatch} disabled={busy}/>
- {onReviewSetup&&<MatchReviews match={s} profiles={data.profiles} admin onStart={()=>onReviewSetup(s)}/>}
  <StarEditor match={s} save={saveStar} players={data.profiles.filter(p=>data.attendances.some(a=>a.session_id===s.id&&a.player_id===p.id&&a.status!=='waiting'))}/>
               </div>
             ))}

@@ -92,6 +92,19 @@ test('reviews enforce checked rosters, independent scores, privacy, resumability
  await assert.rejects(asUser(admin,correct),/alterada por outra pessoa/);
  await assert.rejects(asUser(admin,'delete from public.review_corrections'));
  await db.exec('begin;set local role anon;');await assert.rejects(db.query('select public.pending_player_reviews()'));await db.exec('rollback');
+ // Retiring reviews releases existing pending participants and prevents new votes.
+ await db.exec(`update public.review_rounds set closed_at=null where session_id='${game}';insert into public.review_participants(session_id,player_id) values('${game}','${outsider}');delete from public.attendances where session_id='${next}' and player_id='${outsider}';`);
+ assert.ok((await pending(outsider)).length>0);
+ await assert.rejects(asUser(outsider,`select public.set_attendance_manual('${next}',true)`),/Conclua a avaliação/);
+ const beforeArchive=(await db.query('select * from public.player_reviews')).rows;
+ await db.exec(readFileSync(new URL('025_disable_player_reviews.sql',dir),'utf8'));
+ assert.deepEqual(await pending(outsider),[]);
+ await asUser(outsider,`select public.set_attendance_manual('${next}',true)`);
+ assert.deepEqual((await db.query('select * from public.player_reviews')).rows,beforeArchive);
+ await assert.rejects(asUser(admin,`select public.start_player_reviews('${game}',array['${a}','${b}']::uuid[])`),/permission denied/);
+ await assert.rejects(asUser(a,`select public.submit_player_review('${game}','${b}',5,5)`),/permission denied/);
+ await assert.rejects(asUser(admin,'select * from public.player_reviews'),/permission denied/);
+ await assert.rejects(asUser(admin,`select * from public.admin_player_review_results('${game}')`),/permission denied/);
  await asUser(admin,`select public.delete_closed_session('${game}')`);
  assert.equal((await db.query('select * from public.review_rounds')).rows.length,0);
  assert.equal((await db.query('select * from public.player_reviews')).rows.length,0);
