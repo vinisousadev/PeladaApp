@@ -12,8 +12,8 @@ O administrador usa **Salvar placar** para publicar um resultado parcial e **Fin
 
 As tabelas `tournaments`, `tournament_teams` e `tournament_games` são criadas pela migração `024_tournaments.sql`. Membros aprovados com foto podem consultar; somente administradores podem alterar por RPC. As alterações usam revisão otimista e bloqueio transacional para impedir sobrescritas silenciosas entre administradores. Peladas canceladas ficam disponíveis somente para leitura. A exclusão da pelada remove o campeonato associado.
 
-Esta versão não altera gols, assistências, avaliações ou pontuação individual a partir dos jogos do campeonato. A futura pontuação por vitórias ainda precisa de implementação própria.
+Esta versão não altera gols, assistências ou pontuação individual a partir dos jogos do campeonato. A futura pontuação por vitórias ainda precisa de implementação própria.
 
-## Avaliações obrigatórias
+## Encerramento
 
-Ao encerrar os registros e confirmar quem jogou, os participantes recebem o modal obrigatório de ataque e defesa. Não há botão de fechar, logout ou dispensa própria no modal. A consulta de pendências ocorre a cada cinco segundos e ao retornar à página. O progresso é salvo por jogador; responder explicitamente “Não consegui avaliar” continua permitido e não conta na média. As exceções administrativas existentes ficam fora do modal. Peladas com menos de dois participantes ainda podem ser encerradas sem abrir avaliações.
+Encerrar os registros fecha a pelada diretamente. Não existem avaliações de ataque e defesa ou obrigatoriedade de preencher notas.

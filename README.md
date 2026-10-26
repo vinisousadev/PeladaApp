@@ -72,19 +72,9 @@ Links assinados de fotos são reutilizados em memória durante a sessão, com re
 ## Troca de projeto Supabase — 06/10/2026
 
 A implantação passou a usar o projeto nczbfnuwqrqmeprjuqtt. URL e chave pública são configuradas no .env.local ignorado pelo Git e incorporadas no build estático; o .env não deve ser publicado no repositório. Os dados e contas foram copiados e verificados. Referências de fotos ausentes foram limpas no destino para permitir reenvio, preservando os resultados. Um comprovante não foi recuperado e precisa de reenvio; seu registro foi mantido. É necessário entrar novamente. Configurações de confirmação de e-mail e URLs de redirecionamento devem ser conferidas no painel do novo projeto.
-# Avaliações de ataque e defesa
+# Avaliações desativadas
 
-A migração `016_player_reviews.sql` adiciona votação após cada pelada. Ao encerrar na Administração, confira os confirmados e desmarque quem não jogou. A lista de avaliação fica fixa; a presença e o desempenho histórico não são apagados. Não há abertura automática de avaliações antigas.
-
-Cada participante avalia os demais com duas notas independentes (1–5): ataque e defesa. “Não consegui avaliar” em uma categoria salva uma resposta sem nota e não entra na média. Não há autoavaliação. O modal obrigatório salva por jogador, retoma após novo login e permite pedir ajuda ou sair da conta. A confirmação de novas presenças também é bloqueada no banco enquanto houver respostas pendentes.
-
-Em **Peladas** ou **Administração → Avaliações de ataque e defesa**, o administrador vê pedidos de ajuda, dispensa participantes e pode encerrar a votação antecipadamente. A votação encerra automaticamente quando todos terminam ou são dispensados; só então as médias e quantidades por categoria ficam disponíveis. Notas individuais podem ser consultadas pelo próprio autor e, pela migração 018, pelo administrador. Pontuação da carta e craque da pelada permanecem independentes. Reabrir os registros suspende a cobrança até novo encerramento, sem apagar votos; excluir uma pelada remove também sua votação.
-
-Validação: `npm test` verifica permissões, privacidade, médias, participantes e bloqueio de presença; `npm run test:e2e -- player-reviews.spec.ts` verifica o modal em celular com API simulada, erro de rede, retomada e bloqueio de fechamento. As avaliações usam o Supabase real; o modo demonstração mantém seu fluxo anterior.
-
-A migração `017_admin_review_results.sql` adiciona **Administração → Avaliações**: seleção de pelada, médias de ataque/defesa, média geral de todas as notas válidas, contagem por categoria e notas recebidas sem autores. Apenas administradores consultam resultados parciais; os jogadores continuam vendo somente o resultado encerrado.
-
-A migração `018_review_corrections.sql` permite ao administrador ver quem votou e corrigir notas em Administração → Avaliações → Ver autores e corrigir. É obrigatório informar o motivo; o histórico preserva valores anteriores, autor do voto, administrador e data. Correções funcionam em votações abertas ou encerradas e recalculam as médias, com proteção contra sobrescrever alterações concorrentes. O botão Gerar lista de médias cria texto para copiar ou baixar em TXT, sem autores dos votos e com indicação de resultado parcial/final.
+A migração `025_disable_player_reviews.sql` retira a exigência de notas e o bloqueio de presença, desativa as APIs de avaliação e libera pendências em abas antigas. A interface não oferece votação, médias ou correções. Encerrar registros passa a fechar a pelada diretamente, com qualquer quantidade de participantes. Os dados históricos de notas permanecem arquivados no banco, sem acesso pelo app.
 
 ## Cadastro por convite
 
@@ -92,13 +82,13 @@ A migração `019_inviter_approval.sql` preserva os membros existentes como apro
 
 A aba **Convites** permite confirmar ou recusar os próprios convidados. O administrador vê todos os convites, o responsável pelo convite, a situação, quem analisou e quando; também pode aprovar, recusar ou reconsiderar uma recusa. O responsável é fixado pelo banco no cadastro e não muda com a edição de metadados da conta. Membros anteriores não recebem um responsável fictício.
 
-Pendentes e recusados podem entrar na conta apenas para consultar o próprio status e sair. As políticas do banco bloqueiam dados da pelada, fotos e novas presenças até a aprovação. A tela verifica a situação periodicamente e oferece “Verificar confirmação”. As regras de avaliações pendentes continuam valendo após a aprovação.
+Pendentes e recusados podem entrar na conta apenas para consultar o próprio status e sair. As políticas do banco bloqueiam dados da pelada, fotos e novas presenças até a aprovação. A tela verifica a situação periodicamente e oferece “Verificar confirmação”.
 
 Aplique a migração antes de publicar este frontend. Na implantação inicial de um banco vazio, crie o primeiro administrador antes da migração 019. Testes: `npm test` e `npm run test:e2e -- invitations.spec.ts` (cadastro, espera, aprovação e layout móvel com API simulada).
 
 A migração `020_required_registration_photo.sql` exige foto apenas nos cadastros criados após sua aplicação. Depois de criar a conta, o jogador envia uma foto JPG/PNG/WebP (até 5 MB), normalizada em WebP de até 1200 px. Falhas permitem tentar novamente, inclusive depois de novo login. A aprovação é bloqueada no banco até existir a foto; a aba Convites indica quando o envio está pendente. Contas antigas mantêm o acesso. Durante o cadastro, o Storage permite somente o arquivo privado do próprio jogador (`registration.webp`); as fotos e os dados dos outros continuam indisponíveis. O enquadramento pode ser ajustado em Minha carta após aprovação.
 
-A migração `021_photo_required_for_all.sql` estende a exigência de foto às contas existentes, incluindo administradores. Quem está sem foto vê um modal obrigatório antes das outras telas e avaliações, sem fechar, sair, Esc ou clique externo. A exigência persiste ao recarregar ou entrar novamente, e termina após o envio e salvamento. Quem já tem foto não precisa reenviar. Aprovação, presenças, desempenhos e histórico são preservados. O banco limita o acesso dos membros sem foto e mantém uma exceção restrita para enviar e vincular a própria imagem.
+A migração `021_photo_required_for_all.sql` estende a exigência de foto às contas existentes, incluindo administradores. Quem está sem foto vê um modal obrigatório antes das outras telas, sem fechar, sair, Esc ou clique externo. A exigência persiste ao recarregar ou entrar novamente, e termina após o envio e salvamento. Quem já tem foto não precisa reenviar. Aprovação, presenças, desempenhos e histórico são preservados. O banco limita o acesso dos membros sem foto e mantém uma exceção restrita para enviar e vincular a própria imagem.
 
 A migração `022_registration_photo_framing.sql` salva o enquadramento junto com a foto no cadastro e no modal obrigatório: horizontal/vertical de 0 a 100 e zoom de 1× a 3×. A prévia utiliza a mesma regra visual da carta; Redefinir retorna a 50% horizontal, 25% vertical e 1×. Foto e ajustes são vinculados em uma única transação, com validação de limites no banco. A versão sem parâmetros da função permanece disponível para abas antigas. Enquadramentos já salvos não são alterados.
 
