@@ -56,7 +56,7 @@ for(const role of ['admin','player'])test(`November ${role}: participant confirm
  const me='00000000-0000-0000-0000-000000000001';
  const profiles=[{id:me,display_name:'Vini',role,position:'MEI',photo_path:null,photo_y:25},{id:'def',display_name:'GG',role:'player',position:'ATA',photo_path:null,photo_y:25}];
  const teams=[1,2,3,4].map(slot=>({slot,name:'Time '+slot,players:slot===1?['def']:slot===2?[me]:[]}));
- let revision=1,participants:any[]=[],scores:any[]=[];
+ let revision=1,participants:any[]=[{game_number:1,player_id:me,team_slot:2},{game_number:1,player_id:'def',team_slot:1}],scores:any[]=[];
  await page.addInitScript(me=>localStorage.setItem('sb-nczbfnuwqrqmeprjuqtt-auth-token',JSON.stringify({access_token:'test.payload.signature',refresh_token:'test',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:{id:me,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{}}})),me);
  await page.route('**/*.supabase.co/**',async route=>{
   const resource=new URL(route.request().url()).pathname.split('/').pop();let body:unknown=[];
@@ -64,17 +64,17 @@ for(const role of ['admin','player'])test(`November ${role}: participant confirm
   if(resource==='sessions')body=[{id:'match',name:'Pelada de novembro',played_on:'2026-11-04',status:'open',created_by:me}];
   if(resource==='session_scores')body=scores;
   if(resource==='manage_tournament'){
-   const req=route.request().postDataJSON();expect(req.p_action).toBe('participants');expect(req.p_payload).toEqual({number:1,players:['def']});
-   participants=[{game_number:1,player_id:'def',team_slot:1}];scores=[{session_id:'match',player_id:'def',position:'DEF',goal_points:0,assist_points:0,defense_points:3,placement_points:0,clean_sheets:1}];revision++;
+   const req=route.request().postDataJSON();expect(req.p_action).toBe('participants');expect(req.p_payload.number).toBe(1);expect(req.p_payload.players).toContain(me);
+   participants=req.p_payload.players.map((id:string)=>({game_number:1,player_id:id,team_slot:id===me?2:1}));scores=req.p_payload.players.includes('def')?[{session_id:'match',player_id:'def',position:'DEF',goal_points:0,assist_points:0,defense_points:3,placement_points:0,clean_sheets:1}]:[];revision++;
   }
   if(resource==='get_tournament'||resource==='manage_tournament')body={revision,teams,games:[{number:1,stage:'group',home:1,away:2,home_score:1,away_score:0,finished:true,winner:1}],standings:[],positions:[{player_id:'def',position:'DEF'},{player_id:me,position:'MEI'}],participants,scores};
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
  });
  await page.goto('/');await page.getByRole('button',{name:/^Campeonato/}).click();
- await page.getByText('Quem jogou · 0 confirmados',{exact:false}).click();
+ await page.getByText('Quem jogou · 2 confirmados',{exact:false}).click();
  const box=page.getByRole('checkbox',{name:/GG · DEF/});await expect(box).toBeVisible();
  if(role==='admin'){
-  await box.check();await page.getByRole('button',{name:'Salvar participantes'}).click();
+  await expect(box).toBeChecked();await box.uncheck();await page.getByRole('button',{name:'Salvar participantes'}).click();await expect(page.getByText('Quem jogou · 1 confirmados',{exact:false})).toBeVisible();await expect(box).not.toBeChecked();await box.check();await page.getByRole('button',{name:'Salvar participantes'}).click();
   await expect(page.locator('.tournament-score-summary')).toContainText('GG');
   await expect(page.locator('.tournament-score-summary')).toContainText('+3');
   await page.getByRole('button',{name:'Ranking',exact:true}).click();await page.getByLabel('Mês do ranking').fill('2026-11');
