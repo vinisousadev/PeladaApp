@@ -23,6 +23,7 @@ test('November scoring: frozen positions, confirmed participation, group placeme
  await db.exec(readFileSync(new URL('024_tournaments.sql',dir),'utf8'));
  await db.exec(readFileSync(new URL('025_disable_player_reviews.sql',dir),'utf8'));
  await db.exec(readFileSync(new URL('026_november_scoring.sql',dir),'utf8'));
+ await db.exec(readFileSync(new URL('027_default_game_participants.sql',dir),'utf8'));
  await db.exec(`update public.sessions set played_on='2026-11-04' where id='${session}'; update public.profiles set position='DEF' where id='${player}';update public.profiles set position='MEI' where id='${admin}';update public.attendances set status='confirmed' where session_id='${session}';insert into public.attendances(session_id,player_id,status) values('${session}','${admin}','confirmed');`);
  async function asUser(id:string,sql:string,params:unknown[]=[]){await db.exec(`begin;set local role authenticated;set local "request.jwt.claim.sub"='${id}';`);try{const result=await db.query<any>(sql,params);await db.exec('commit');return result;}catch(e){await db.exec('rollback');throw e;}}
 
@@ -31,6 +32,13 @@ test('November scoring: frozen positions, confirmed participation, group placeme
  const score=async(id=player)=>(await asUser(player,'select * from public.session_scores where player_id=$1',[id])).rows[0];
  const teams=['Amarelo','Branco','Laranja','Azul'].map((name,i)=>({name,players:i===0?[player]:i===1?[admin]:[]}));
  await call('teams',{teams});
+ assert.equal(snapshot.participants.length,6);
+ assert.equal(snapshot.participants.filter((p:any)=>p.player_id===player).length,3);
+ await call('participants',{number:1,players:[]});
+ await call('score',{number:1,home_score:0,away_score:0});
+ assert.equal(snapshot.participants.filter((p:any)=>p.game_number===1).length,0);
+ // Explicit exclusions in other matches must survive subsequent phase generation.
+ await call('participants',{number:4,players:[]});await call('participants',{number:6,players:[]});
  assert.equal(snapshot.positions.find((p:any)=>p.player_id===player).position,'DEF');
  await asUser(player,`update public.profiles set position='ATA' where id='${player}'`);
  await db.exec(`insert into public.performances(session_id,player_id,goals,assists) values('${session}','${player}',5,2),('${session}','${admin}',1,2)`);
@@ -55,7 +63,7 @@ test('November scoring: frozen positions, confirmed participation, group placeme
  await call('finish',{number:6,home_score:1,away_score:1});
  assert.deepEqual(snapshot.standings.map((s:any)=>s.slot),[1,2,3,4]);
  assert.equal((await score()).placement_points,4);assert.equal((await score(admin)).placement_points,3);
- await call('semis');await call('participants',{number:7,players:[player]});await call('finish',{number:7,home_score:0,away_score:0});
+ await call('semis');assert.ok(snapshot.participants.some((p:any)=>p.game_number===7&&p.player_id===player));assert.equal(snapshot.participants.filter((p:any)=>p.game_number===4).length,0);await call('participants',{number:7,players:[player]});await call('finish',{number:7,home_score:0,away_score:0});
  assert.equal((await score()).defense_points,12); // no per-session defensive cap
  await call('finish',{number:8,home_score:1,away_score:1,winner:3});await call('final');
  await call('finish',{number:9,home_score:0,away_score:1}); // group leader loses final
