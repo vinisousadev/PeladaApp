@@ -98,8 +98,18 @@ A migração `023_unlimited_monthly_members.sql` remove o limite de mensalistas 
 
 A aba **Premiação** gera pódios de ranking geral, gols e assistências, além da carta de jogador do mês. Usa o período selecionado, as fotos e o enquadramento das cartas atuais, sem mudar os registros. O ranking inaugural continua somando setembro e outubro de 2026; novembro em diante é mensal.
 
-Story: PNG 1080 × 1920. Feed: PNG 1080 × 1350. A prévia usa o mesmo conteúdo da exportação. Compartilhar usa o compartilhamento de arquivos do dispositivo quando disponível e oferece download nos demais casos. Fotos e escudos são incorporados à imagem somente ao exportar, sem alterar os links usados pelo app.
+Feed quadrado (padrão): PNG 1080 × 1080. Story: PNG 1080 × 1920. Feed vertical: PNG 1080 × 1350. O quadrado tem composição própria para pódios e jogador do mês, sem barras laterais. A prévia usa o mesmo conteúdo da exportação. Compartilhar usa o compartilhamento de arquivos do dispositivo quando disponível e oferece download nos demais casos. Fotos e escudos são incorporados à imagem somente ao exportar, sem alterar os links usados pelo app.
 
 Só entram na premiação jogadores com desempenho registrado no período; gols e assistências exigem pelo menos um registro positivo na categoria. Se houver menos de três elegíveis, aparecem apenas os disponíveis. Empates seguem a ordem alfabética do ranking. O jogador do mês começa no líder geral elegível; o ADM pode trocar o escolhido **para a arte atual**, sem registrar uma premiação oficial no banco ou alterar o ranking. O resultado reflete os dados atuais, não um fechamento imutável do mês.
 
 Validação da exportação: `npm run test:e2e -- monthly-awards.spec.ts` gera as oito combinações, verifica dimensões PNG, enquadramento sem sobreposição, seleção do jogador, pódios, período histórico e estado vazio de novembro.
+
+## Pontuação a partir de novembro de 2026
+
+Peladas com data a partir de 01/11/2026 usam base mensal 40 e teto 100. Gols valem 3 em todas as posições; assistências valem 3 para MEI e 2 nas demais. DEF recebe 3 por jogo finalizado sem sofrer gols em que o ADM confirmou sua participação, sem limite por pelada. A posição da carta é guardada na primeira confirmação de presença e não muda retroativamente. GOL mantém gol 3 e assistência 2, sem bônus defensivo específico.
+
+Em Campeonato, o ADM registra os participantes reais de cada jogo em **Quem jogou → Salvar participantes**. Selecionar alguém no elenco não basta para conceder bônus. Depois de finalizar os seis jogos da fase de pontos, a posição na tabela concede 4, 3, 2 ou 1 ponto a cada jogador que participou de pelo menos um jogo dessa fase. Semifinais e final não alteram esse bônus; podem gerar bônus defensivo. Partidas empatadas em 0×0 contam como jogos sem sofrer gol para ambos os times, independentemente do vencedor nos pênaltis.
+
+A migração `026_november_scoring.sql` adiciona posições por pelada, participantes por jogo e a visão calculada `session_scores`. Bônus são recalculados a partir dos resultados, sem contadores incrementais. Reabrir jogos retira seus pontos; reabrir a fase de grupos suspende o bônus da tabela até os seis jogos estarem finalizados novamente. Corrigir participantes, desfazer mata-mata ou cancelar a pelada também recalcula. Apenas ADM pode alterar participantes, com controle de revisão concorrente. Fotos e seus links permanecem inalterados.
+
+Setembro e outubro de 2026 mantêm integralmente a regra histórica de base 50, gol 3 e assistência 2. A regra é escolhida pela data da pelada, não pela data de edição. Meses seguintes começam em 40, sem apagar o histórico. Ranking, cartas e artes de premiação usam a mesma pontuação e mantêm desempate alfabético.

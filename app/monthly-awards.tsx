@@ -14,14 +14,15 @@ const categories = {
  player: {label:'Jogador do mês',title:'JOGADOR DO MÊS',subtitle:'UMA TEMPORADA PARA LEMBRAR',unit:'PONTOS'},
 };
 type Category=keyof typeof categories;
-type Format='story'|'feed';
+type Format='story'|'feed'|'square';
+const formatHeight={story:960,feed:675,square:540};
 
 export function MonthlyAwards({data,month,isAdmin}:{data:ClubData;month:string;isAdmin:boolean}){
  return <AwardsEditor key={month} data={data} month={month} isAdmin={isAdmin}/>;
 }
 
 function AwardsEditor({data,month,isAdmin}:{data:ClubData;month:string;isAdmin:boolean}){
- const [category,setCategory]=useState<Category>('points'),[format,setFormat]=useState<Format>('story');
+ const [category,setCategory]=useState<Category>('points'),[format,setFormat]=useState<Format>('square');
  const [chosen,setChosen]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [download,setDownload]=useState<{url:string;name:string}|null>(null);
  const container=useRef<HTMLDivElement>(null),poster=useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ function AwardsEditor({data,month,isAdmin}:{data:ClubData;month:string;isAdmin:b
     if(!cache.has(source))cache.set(source,(async()=>{const response=await fetch(source);if(!response.ok)throw Error('Não foi possível carregar uma foto ou escudo. Atualize a página e tente novamente.');const blob=await response.blob();return await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('Não foi possível ler a imagem.'));reader.readAsDataURL(blob);});})());
     img.src=await cache.get(source)!;await img.decode();
    }));
-   const blob=await toBlob(clone,{pixelRatio:2,width:540,height:format==='story'?960:675,preferredFontFormat:'truetype',includeQueryParams:true});
+   const blob=await toBlob(clone,{pixelRatio:2,width:540,height:formatHeight[format],preferredFontFormat:'truetype',includeQueryParams:true});
    if(!blob)throw Error('Não foi possível gerar a arte. Tente novamente.');
    const name=`pelada-club-${category}-${month}-${format}.png`,url=URL.createObjectURL(blob);
    setDownload({url,name});
@@ -65,23 +66,23 @@ function AwardsEditor({data,month,isAdmin}:{data:ClubData;month:string;isAdmin:b
   <div className="section-heading"><div><span className="eyebrow">A RESENHA VIROU HISTÓRIA</span><h2>Premiação do mês</h2><p className="muted">Escolha o período no topo da página e leve os destaques para o Instagram.</p></div><Trophy size={30}/></div>
   <div className="awards-layout"><div className="awards-controls">
    <fieldset disabled={busy}><legend>Escolha a arte</legend><div className="awards-options">{Object.entries(categories).map(([id,c])=><button type="button" key={id} aria-pressed={category===id} onClick={()=>setCategory(id as Category)}>{c.label}</button>)}</div></fieldset>
-   <fieldset disabled={busy}><legend>Formato</legend><div className="awards-options"><button type="button" aria-pressed={format==='story'} onClick={()=>setFormat('story')}>Story · 9:16</button><button type="button" aria-pressed={format==='feed'} onClick={()=>setFormat('feed')}>Feed · 4:5</button></div></fieldset>
+   <fieldset disabled={busy}><legend>Formato</legend><div className="awards-options"><button type="button" aria-pressed={format==='square'} onClick={()=>setFormat('square')}>Feed quadrado · 1:1</button><button type="button" aria-pressed={format==='story'} onClick={()=>setFormat('story')}>Story · 9:16</button><button type="button" aria-pressed={format==='feed'} onClick={()=>setFormat('feed')}>Feed · 4:5</button></div></fieldset>
    {category==='player'&&isAdmin&&<label>Jogador do mês nesta arte<select disabled={busy} value={winner?.id??''} onChange={e=>setChosen(e.target.value)}>{general.map(p=><option key={p.id} value={p.id}>{p.display_name} · {p.rank}º geral</option>)}</select><small>A escolha vale para esta arte e não altera o ranking.</small></label>}
-   <p className="awards-details">{rankingPeriodLabel(month)}<br/>PNG em alta qualidade · {format==='story'?'1080 × 1920':'1080 × 1350'} px<br/>As artes refletem os registros atuais do período.</p>
+   <p className="awards-details">{rankingPeriodLabel(month)}<br/>PNG em alta qualidade · {`1080 × ${formatHeight[format]*2}`} px<br/>As artes refletem os registros atuais do período.</p>
    <button className="primary" disabled={busy||!eligible} onClick={()=>void generate(false)}><Download size={18}/>{busy?'Gerando arte…':'Baixar arte em HD'}</button>
    <button className="secondary" disabled={busy||!eligible} onClick={()=>void generate(true)}><Share2 size={18}/>Compartilhar</button>
    {!eligible&&<p role="status">Ainda não há {category==='goals'?'gols':category==='assists'?'assistências':'desempenhos registrados'} neste período para gerar esta arte.</p>}
    {top.length<3&&top.length>0&&category!=='player'&&<small>Serão exibidos os {top.length} jogadores com registros nesta categoria.</small>}
    {error&&<p className="error" role="alert">{error}</p>}
    {download&&<div className="awards-download"><a href={download.url} download={download.name}>Salvar imagem gerada</a><p>No celular, você também pode abrir ou segurar a imagem para salvar.</p><a href={download.url} target="_blank" rel="noreferrer"><img src={download.url} alt="Arte pronta para compartilhar"/></a></div>}
-  </div><div ref={container} className="awards-preview"><div style={{height:(format==='story'?960:675)*scale,width:540*scale,position:'relative',margin:'0 auto'}}><div style={{transform:`scale(${scale})`,transformOrigin:'top left',width:540}}><AwardPoster refValue={poster} category={category} format={format} month={month} top={top} winner={winner}/></div></div></div></div>
+  </div><div ref={container} className="awards-preview"><div style={{height:(formatHeight[format])*scale,width:540*scale,position:'relative',margin:'0 auto'}}><div style={{transform:`scale(${scale})`,transformOrigin:'top left',width:540}}><AwardPoster refValue={poster} category={category} format={format} month={month} top={top} winner={winner}/></div></div></div></div>
  </section>;
 }
 
 function AwardPoster({refValue,category,format,month,top,winner}:{refValue:React.Ref<HTMLDivElement>;category:Category;format:Format;month:string;top:Ranked[];winner?:Ranked}){
  const info=categories[category],criterion=category==='player'?'points':category;
  const display=top.length===3?[{player:top[1],place:2},{player:top[0],place:1},{player:top[2],place:3}]:top.map((player,i)=>({player,place:i+1}));
- return <div ref={refValue} className={`award-poster award-${format} award-${category}`}>
+ return <div ref={refValue} className={`award-poster ${format==='square'?'award-feed ':''}award-${format} award-${category}`}>
   <div className="award-grain"/><header className="award-heading"><span className="award-kicker">{info.subtitle}</span><h2>{category==='player'?<>JOGADOR<br/><em>DO MÊS.</em></>:<>{info.title}<em>DO PERÍODO.</em></>}</h2><p>{rankingPeriodLabel(month)}</p></header>
   <main className="award-main">{category==='player'?winner?<><div className="award-hero-card"><span className="award-crown">★</span><div className="award-hero-scale"><PlayerCard player={winner} month={month} large animated={false}/></div></div><div className="award-player-summary"><strong>{winner.display_name}</strong><span>{winner.rank}º NO GERAL <i/> {winner.points} PONTOS</span></div><div className="award-metrics"><div><b>{winner.goals}</b><span>GOLS</span></div><div><b>{winner.assists}</b><span>ASSISTÊNCIAS</span></div><div><b>{winner.played}</b><span>PELADAS</span></div></div></>:<p className="award-empty">O próximo destaque começa em campo.</p>:<div className="award-podium">{display.map(({player,place})=><div key={player.id} className={`award-place award-place-${place}`}><div className="award-place-number">{place===1&&<span>★</span>}{place}º</div><div className="award-card-slot"><div><PlayerCard player={player} month={month} animated={false}/></div></div><div className="award-podium-base"><strong>{player[criterion]}</strong><span>{info.unit}</span><p>{player.display_name}</p></div></div>)}{!display.length&&<p className="award-empty">Uma nova disputa está começando.</p>}</div>}</main>
   <footer className="award-footer"><div className="award-rule"/><strong>O CAMPO É NOSSO.<br/><span>A HISTÓRIA TAMBÉM.</span></strong><small>PELADA CLUB · EDIÇÃO DO PERÍODO</small></footer>

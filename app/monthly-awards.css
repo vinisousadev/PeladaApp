@@ -4,3 +4,40 @@
 .award-feed .award-card-slot{height:215px}.award-feed .award-place-1 .award-card-slot{height:240px}.award-feed .award-card-slot>div{transform:translateX(-50%) scale(.59)}.award-feed .award-place-1 .award-card-slot>div{transform:translateX(-50%) scale(.67)}.award-feed .award-podium-base{min-height:82px}.award-feed .award-place-1 .award-podium-base{min-height:94px}.award-feed .award-podium-base>strong{font-size:27px}.award-poster .card-edition{white-space:nowrap}.award-player-summary>strong{overflow-wrap:anywhere;max-width:460px;margin:auto}
 .award-feed.award-player .award-hero-card{height:255px;flex-shrink:0}.award-feed.award-player .award-hero-scale{width:258px;transform:translateX(-50%) scale(.55)}.award-feed.award-player .award-crown{right:24px;top:14px;font-size:30px}.award-feed .award-player-summary>span{margin-top:6px;font-size:10px}
 .award-feed.award-player .award-hero-card>.award-hero-scale{width:258px;transform:translateX(-50%) scale(.60)}
+
+/* Square feed: compose within 1:1 rather than letterboxing a portrait export. */
+.award-square{height:540px;padding:22px 22px 18px}
+.award-square .award-kicker{font-size:9px;letter-spacing:2px}
+.award-square .award-heading h2{font-size:30px;margin:8px 0}
+.award-square .award-heading h2 em{font-size:21px;margin-top:4px}
+.award-square .award-heading p{font-size:9px}
+.award-square .award-card-slot{height:175px}
+.award-square .award-place-1 .award-card-slot{height:195px}
+.award-square .award-card-slot>div{transform:translateX(-50%) scale(.48)}
+.award-square .award-place-1 .award-card-slot>div{transform:translateX(-50%) scale(.54)}
+.award-square .award-place-number{font-size:20px}
+.award-square .award-place-number>span{font-size:13px}
+.award-square .award-podium-base{min-height:68px;margin-top:7px;padding:7px 6px}
+.award-square .award-place-1 .award-podium-base{min-height:78px}
+.award-square .award-podium-base>strong{font-size:24px}
+.award-square .award-podium-base p{font-size:10px;margin-top:5px}
+.award-square .award-footer{padding-top:8px}
+.award-square .award-footer>small{margin-top:6px;font-size:6px}
+.award-square .award-rule{margin-bottom:6px}
+.award-square.award-player .award-heading h2{font-size:30px}
+.award-square.award-player .award-main{display:grid;grid-template-columns:230px minmax(0,1fr);grid-template-rows:1fr 1fr;column-gap:12px;align-items:center}
+.award-square.award-player .award-hero-card{grid-row:1 / 3;width:230px;height:280px}
+.award-square.award-player .award-hero-card>.award-hero-scale{transform:translateX(-50%) scale(.64)}
+.award-square.award-player .award-crown{right:15px;top:12px}
+.award-square .award-player-summary{align-self:end;margin:0 0 15px}
+.award-square .award-player-summary>strong{font-size:22px}
+.award-square .award-player-summary>span{flex-wrap:wrap;font-size:10px;gap:8px;line-height:1.5}
+.award-square .award-metrics{width:100%;align-self:start;padding-top:15px}
+.award-square .award-metrics>div{width:33.333%}
+.award-square .award-metrics b{font-size:25px}
+.award-square .award-metrics span{font-size:8px;letter-spacing:0}
+.award-square.award-player .award-main{display:block;position:relative}
+.award-square.award-player .award-hero-card{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+.award-square .award-player-summary{position:absolute;left:242px;top:65px;width:254px;margin:0}
+.award-square .award-player-summary>strong{font-size:20px;min-height:52px;display:flex;align-items:center;justify-content:center;line-height:1.2}
+.award-square .award-metrics{position:absolute;left:242px;top:180px;width:254px}
