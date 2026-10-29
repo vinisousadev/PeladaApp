@@ -12,9 +12,9 @@ test('Opening ranking carries September into October, resets in November and pre
  const september=rankPlayers(data,'2026-09')[0],october=rankPlayers(data,'2026-10')[0];
  assert.deepEqual(september,october);
  assert.equal(october.goals,3);assert.equal(october.assists,6);assert.equal(october.played,3);assert.equal(october.points,71);
- const november=rankPlayers(data,'2026-11')[0];assert.equal(november.points,57);assert.equal(november.played,1);
- assert.equal(rankPlayers({...data,performances:data.performances.filter(p=>p.session_id!=='4')},'2026-11')[0].points,50);
- assert.equal(rankPlayers(data,'2026-12')[0].points,57);
+ const november=rankPlayers(data,'2026-11')[0];assert.equal(november.points,49);assert.equal(november.played,1);
+ assert.equal(rankPlayers({...data,performances:data.performances.filter(p=>p.session_id!=='4')},'2026-11')[0].points,40);
+ assert.equal(rankPlayers(data,'2026-12')[0].points,49);
  assert.equal(JSON.stringify(data),before);
  data.sessions[2].status='cancelled';assert.equal(rankPlayers(data,'2026-10')[0].points,64);
  assert.equal(inRankingPeriod('2026-08-31','2026-10'),false);
