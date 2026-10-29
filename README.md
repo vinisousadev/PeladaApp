@@ -98,7 +98,7 @@ A migração `023_unlimited_monthly_members.sql` remove o limite de mensalistas 
 
 A aba **Premiação** gera pódios de ranking geral, gols e assistências, além da carta de jogador do mês. Usa o período selecionado, as fotos e o enquadramento das cartas atuais, sem mudar os registros. O ranking inaugural continua somando setembro e outubro de 2026; novembro em diante é mensal.
 
-Story: PNG 1080 × 1920. Feed: PNG 1080 × 1350. A prévia usa o mesmo conteúdo da exportação. Compartilhar usa o compartilhamento de arquivos do dispositivo quando disponível e oferece download nos demais casos. Fotos e escudos são incorporados à imagem somente ao exportar, sem alterar os links usados pelo app.
+Feed quadrado (padrão): PNG 1080 × 1080. Story: PNG 1080 × 1920. Feed vertical: PNG 1080 × 1350. O quadrado tem composição própria para pódios e jogador do mês, sem barras laterais. A prévia usa o mesmo conteúdo da exportação. Compartilhar usa o compartilhamento de arquivos do dispositivo quando disponível e oferece download nos demais casos. Fotos e escudos são incorporados à imagem somente ao exportar, sem alterar os links usados pelo app.
 
 Só entram na premiação jogadores com desempenho registrado no período; gols e assistências exigem pelo menos um registro positivo na categoria. Se houver menos de três elegíveis, aparecem apenas os disponíveis. Empates seguem a ordem alfabética do ranking. O jogador do mês começa no líder geral elegível; o ADM pode trocar o escolhido **para a arte atual**, sem registrar uma premiação oficial no banco ou alterar o ranking. O resultado reflete os dados atuais, não um fechamento imutável do mês.
 
