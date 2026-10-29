@@ -4,6 +4,7 @@ import {MandatoryPhoto} from "./registration-photo";
 import {preparePhoto} from '@/lib/photo';
 import {createSignedUrlCache} from '@/lib/signed-url-cache';
 import {InviterPicker, RegistrationPending, Invitations, type Invitation} from "./invitations";
+import {MonthlyAwards} from "./monthly-awards";
 import {Tournament} from "./tournament";
 import {MatchesBoard} from "./matches-board";
 import {DeleteSession} from "./delete-session";
@@ -84,6 +85,7 @@ type View =
   | "invitations"
   | "overview"
   | "ranking"
+  | "awards"
   | "matches"
   | "tournament"
   | "payments"
@@ -973,6 +975,7 @@ export default function Club() {
   const nav = [
     { id: "overview", label: "Visão geral", icon: Trophy },
     { id: "ranking", label: "Ranking", icon: ClipboardList },
+    { id: "awards", label: "Premiação", icon: Trophy },
     { id: "matches", label: "Peladas", icon: Goal },
     { id: "tournament", label: "Campeonato", icon: Trophy },
     { id: "payments", label: "Pagamentos", icon: WalletCards },
@@ -1107,6 +1110,7 @@ export default function Club() {
               <h1>
                 {view === "overview"
                   ? "Seu futebol em destaque."
+                  : view === "awards" ? "Destaques do mês."
                   : view === "ranking"
                     ? "O ranking da turma."
                     : view === "tournament"
@@ -1294,6 +1298,7 @@ export default function Club() {
               </section>
             </>
           )}
+          {view === "awards" && <MonthlyAwards data={data} month={month} isAdmin={Boolean(isAdmin)}/>}
           {view === "ranking" && (
             <section
               className="ranking-panel complete-ranking"

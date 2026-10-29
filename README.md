@@ -93,3 +93,13 @@ A migração `021_photo_required_for_all.sql` estende a exigência de foto às c
 A migração `022_registration_photo_framing.sql` salva o enquadramento junto com a foto no cadastro e no modal obrigatório: horizontal/vertical de 0 a 100 e zoom de 1× a 3×. A prévia utiliza a mesma regra visual da carta; Redefinir retorna a 50% horizontal, 25% vertical e 1×. Foto e ajustes são vinculados em uma única transação, com validação de limites no banco. A versão sem parâmetros da função permanece disponível para abas antigas. Enquadramentos já salvos não são alterados.
 
 A migração `023_unlimited_monthly_members.sql` remove o limite de mensalistas cadastrados. Somente administradores podem alterar o tipo de jogador; essa alteração não mexe nas presenças existentes. Cada pelada mantém o máximo de 24 confirmados. Mensalistas que confirmarem após lotar entram na espera; convidados continuam com liberação manual. A demonstração segue a mesma regra.
+
+## Artes de premiação
+
+A aba **Premiação** gera pódios de ranking geral, gols e assistências, além da carta de jogador do mês. Usa o período selecionado, as fotos e o enquadramento das cartas atuais, sem mudar os registros. O ranking inaugural continua somando setembro e outubro de 2026; novembro em diante é mensal.
+
+Story: PNG 1080 × 1920. Feed: PNG 1080 × 1350. A prévia usa o mesmo conteúdo da exportação. Compartilhar usa o compartilhamento de arquivos do dispositivo quando disponível e oferece download nos demais casos. Fotos e escudos são incorporados à imagem somente ao exportar, sem alterar os links usados pelo app.
+
+Só entram na premiação jogadores com desempenho registrado no período; gols e assistências exigem pelo menos um registro positivo na categoria. Se houver menos de três elegíveis, aparecem apenas os disponíveis. Empates seguem a ordem alfabética do ranking. O jogador do mês começa no líder geral elegível; o ADM pode trocar o escolhido **para a arte atual**, sem registrar uma premiação oficial no banco ou alterar o ranking. O resultado reflete os dados atuais, não um fechamento imutável do mês.
+
+Validação da exportação: `npm run test:e2e -- monthly-awards.spec.ts` gera as oito combinações, verifica dimensões PNG, enquadramento sem sobreposição, seleção do jogador, pódios, período histórico e estado vazio de novembro.
