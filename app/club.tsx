@@ -52,6 +52,8 @@ import {
   isOpeningRanking,
   inRankingPeriod,
   rankPlayers,
+  monthlyBase,
+  scoringDescription,
   validTotals,
   type Audit,
   type ClubData,
@@ -453,6 +455,7 @@ export default function Club() {
           sb.from("attendances").select("*"),
           sb.from("payments").select("*").order("submitted_at", { ascending: false }),
           sb.rpc("registration_invitations"),
+          sb.from("session_scores").select("*"),
         ]);
         for (const r of results) if (r.error) throw r.error;
         const profiles = ((results[0].data ?? []) as Profile[]).filter(p=>!p.access_status||p.access_status==='approved'||p.id===userId);
@@ -487,6 +490,7 @@ export default function Club() {
           profiles,
           sessions: results[1].data ?? [],
           performances: results[2].data ?? [],
+          scores: results[6].data ?? [],
           attendances: results[3].data ?? [],
           payments,
           slots,
@@ -1141,7 +1145,7 @@ export default function Club() {
             </label>}
           </div>
           {view !== "payments" && view !== "matches" && view !== "tournament" && isOpeningRanking(month) && (
-            <p className="ranking-period-note">Primeiro período: setembro + outubro de 2026. Os pontos acumulam até 31/10; o próximo ranking começa em 01/11, com 50 pontos.</p>
+            <p className="ranking-period-note">Primeiro período: setembro + outubro de 2026. Os pontos acumulam até 31/10; o próximo ranking começa em 01/11, com 40 pontos.</p>
           )}
           {error && (
             <div className="error-banner" role="alert">
@@ -1195,7 +1199,7 @@ export default function Club() {
                         <b>{ownRank?.played ?? 0}</b>peladas
                       </span>
                       <span>
-                        <b>{ownRank?.points ?? 50}</b>pontos
+                        <b>{ownRank?.points ?? monthlyBase(month)}</b>pontos
                       </span>
                     </div>
                     <div className="hero-actions">
@@ -1273,15 +1277,7 @@ export default function Club() {
                   >
                     Ver ranking completo <ChevronRight size={16} />
                   </button>
-                  <p className="ranking-rule">
-                    Todos começam em <b>50</b>. Gol: <b>+3</b>. Assistência:{" "}
-                    <b>+2</b>.<br />
-                    Limite de <b>100 pontos</b> por mês. A nota reinicia em 50
-                    no próximo mês.
-                    <br />
-                    Desempate por gols, depois assistências. Empates finais
-                    dividem a posição.
-                  </p>
+                  <p className="ranking-rule">{scoringDescription(month)}</p>
                 </section>
               </div>
               <section className="section-space">
@@ -1311,7 +1307,7 @@ export default function Club() {
                     {rankingPeriodLabel(month)} · {data.profiles.length} jogadores
                   </p>
                 </div>
-                <span className="badge">Nota mensal · 50 a 100</span>
+                <span className="badge">Nota mensal · {monthlyBase(month)} a 100</span>
               </div>
               <div
                 className="segmented"
@@ -1376,21 +1372,14 @@ export default function Club() {
                   ))}
                 </div>
                 <p className="podium-footnote">
-                  Top 3 da lista selecionada · empates mantêm a mesma colocação.
+                  Top 3 da lista selecionada · empates por ordem alfabética.
                 </p>
               </section>
               <Ranking rows={ranked} me={me.id} onSelect={setSelectedPlayer} />
-              <p className="ranking-rule">
-                Todos começam em <b>50</b>. Gol: <b>+3</b>. Assistência:{" "}
-                <b>+2</b>. Limite: <b>100</b>.<br />
-                Desempate por gols, depois assistências. Empates finais dividem
-                a posição.
-                <br />
-                Toque no nome de um jogador para ver sua carta.
-              </p>
+              <p className="ranking-rule">{scoringDescription(month)}</p>
             </section>
           )}
-          {view === "tournament" && <Tournament data={data} isAdmin={isAdmin} demo={demo}/>}
+          {view === "tournament" && <Tournament data={data} isAdmin={isAdmin} demo={demo} onChanged={()=>void load(true)}/>}
           {view === "matches" && (
             <section>
               <div className="section-heading">
