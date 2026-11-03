@@ -13,7 +13,7 @@ export const MONTHLY_BASE=50; // Historical rule through October 2026.
 export const SCORING_START='2026-11-01';
 export function newScoring(date:string){return date.slice(0,7)>='2026-11';}
 export function monthlyBase(month:string){return newScoring(month)?40:50;}
-export function scoringDescription(month:string){return newScoring(month)?'Base 40. Gol +3 para todos. Assistência: MEI +3; ATA/DEF +2. DEF: +3 por jogo sem sofrer gol em que participou. Tabela da primeira fase: +4 / +3 / +2 / +1 após os seis jogos. Carta limitada a 100. Empates por nome.':'Base 50. Gol +3 e assistência +2. Carta limitada a 100. Empates por nome.';}
+export function scoringDescription(month:string){return newScoring(month)?'Base 40. Gol +3 para todos. Assistência: MEI +3; ATA/DEF +2. DEF: +3 por jogo sem sofrer gol em que participou. Colocação final: campeão +4, vice +3, 3º +2 e 4º +1. Sem disputa de 3º, vale a tabela entre os eliminados nas semifinais. Bônus liberado após a final. Carta limitada a 100. Empates por nome.':'Base 50. Gol +3 e assistência +2. Carta limitada a 100. Empates por nome.';}
 export const MONTHLY_MAX=100;
 export function monthlyScore(goals:number,assists:number){return Math.min(MONTHLY_MAX,MONTHLY_BASE+goals*3+assists*2);}
 export function currentDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Fortaleza',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
