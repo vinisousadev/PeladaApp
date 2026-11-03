@@ -1,5 +1,41 @@
 import {test,expect} from '@playwright/test';
 
+test('optional third place: generate, penalty winner, removal confirmation and final bonuses',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const me='00000000-0000-0000-0000-000000000001';
+ await page.addInitScript(me=>localStorage.setItem('sb-nczbfnuwqrqmeprjuqtt-auth-token',JSON.stringify({access_token:'test.payload.signature',refresh_token:'test',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:{id:me,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{}}})),me);
+ const games:any[]=[{number:7,stage:'semi',home:1,away:4,home_score:1,away_score:0,finished:true,winner:1},{number:8,stage:'semi',home:3,away:2,home_score:1,away_score:0,finished:true,winner:3},{number:9,stage:'final',home:1,away:3,home_score:0,away_score:1,finished:true,winner:3}];
+ let revision=3;
+ await page.route('**/*.supabase.co/**',async route=>{
+  const resource=new URL(route.request().url()).pathname.split('/').pop();let body:unknown=[];
+  if(resource==='profiles')body=[{id:me,display_name:'Vini',role:'admin',position:'MEI',photo_path:null,photo_y:50}];
+  if(resource==='sessions')body=[{id:'match',name:'Pelada',played_on:'2026-11-04',status:'open',created_by:me}];
+  if(resource==='manage_tournament'){
+   const req=route.request().postDataJSON();revision++;
+   if(req.p_action==='third')games.push({number:10,stage:'third',home:4,away:2,home_score:0,away_score:0,finished:false,winner:null});
+   else if(req.p_action==='finish'){expect(req.p_payload).toMatchObject({number:10,winner:4});Object.assign(games[3],{finished:true,winner:4});}
+   else if(req.p_action==='remove_third')games.splice(3,1);
+   else throw Error('Unexpected action '+req.p_action);
+  }
+  const lower=games[3]?(games[3].finished?[{slot:4,place:3},{slot:2,place:4}]:[]):[{slot:2,place:3},{slot:4,place:4}];
+  if(resource==='get_tournament'||resource==='manage_tournament')body={revision,teams:[1,2,3,4].map(slot=>({slot,name:'Time '+slot,players:[]})),games,standings:[],placements:[{slot:3,place:1},{slot:1,place:2},...lower]};
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+ });
+ await page.goto('/');await page.getByRole('button',{name:/^Campeonato/}).click();
+ await expect(page.locator('.tournament-placements tbody tr')).toHaveCount(4);
+ await page.getByRole('button',{name:'Adicionar disputa de 3º lugar'}).click();
+ await expect(page.getByText('3º e 4º pendentes:',{exact:false})).toBeVisible();
+ const third=page.getByRole('article',{name:'Jogo 10',exact:true});
+ await expect(third.getByRole('button',{name:'Finalizar jogo'})).toBeDisabled();
+ await third.getByLabel(/quem venceu nos pênaltis/).selectOption('4');await third.getByRole('button',{name:'Finalizar jogo'}).click();
+ await expect(page.locator('.tournament-placements tbody tr').nth(2)).toContainText('Time 4');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.screenshot({path:'../../work/final-placements-mobile.png',fullPage:true});
+ await page.getByRole('button',{name:'Remover disputa de 3º lugar',exact:true}).click();
+ await page.getByRole('button',{name:'Confirmar: remover disputa'}).click();
+ await expect(third).toHaveCount(0);await expect(page.locator('.tournament-placements tbody tr').nth(2)).toContainText('Time 2');
+});
+
 for(const role of ['admin','player'])test(`tournament ${role}: mobile score controls and shared results without clocks`,async({page})=>{
  await page.setViewportSize({width:390,height:844});
  const me='00000000-0000-0000-0000-000000000001';
@@ -56,7 +92,7 @@ for(const role of ['admin','player'])test(`November ${role}: participant confirm
  const me='00000000-0000-0000-0000-000000000001';
  const profiles=[{id:me,display_name:'Vini',role,position:'MEI',photo_path:null,photo_y:25},{id:'def',display_name:'GG',role:'player',position:'ATA',photo_path:null,photo_y:25}];
  const teams=[1,2,3,4].map(slot=>({slot,name:'Time '+slot,players:slot===1?['def']:slot===2?[me]:[]}));
- let revision=1,participants:any[]=[],scores:any[]=[];
+ let revision=1,participants:any[]=[{game_number:1,player_id:me,team_slot:2},{game_number:1,player_id:'def',team_slot:1}],scores:any[]=[];
  await page.addInitScript(me=>localStorage.setItem('sb-nczbfnuwqrqmeprjuqtt-auth-token',JSON.stringify({access_token:'test.payload.signature',refresh_token:'test',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:{id:me,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{}}})),me);
  await page.route('**/*.supabase.co/**',async route=>{
   const resource=new URL(route.request().url()).pathname.split('/').pop();let body:unknown=[];
@@ -64,17 +100,17 @@ for(const role of ['admin','player'])test(`November ${role}: participant confirm
   if(resource==='sessions')body=[{id:'match',name:'Pelada de novembro',played_on:'2026-11-04',status:'open',created_by:me}];
   if(resource==='session_scores')body=scores;
   if(resource==='manage_tournament'){
-   const req=route.request().postDataJSON();expect(req.p_action).toBe('participants');expect(req.p_payload).toEqual({number:1,players:['def']});
-   participants=[{game_number:1,player_id:'def',team_slot:1}];scores=[{session_id:'match',player_id:'def',position:'DEF',goal_points:0,assist_points:0,defense_points:3,placement_points:0,clean_sheets:1}];revision++;
+   const req=route.request().postDataJSON();expect(req.p_action).toBe('participants');expect(req.p_payload.number).toBe(1);expect(req.p_payload.players).toContain(me);
+   participants=req.p_payload.players.map((id:string)=>({game_number:1,player_id:id,team_slot:id===me?2:1}));scores=req.p_payload.players.includes('def')?[{session_id:'match',player_id:'def',position:'DEF',goal_points:0,assist_points:0,defense_points:3,placement_points:0,clean_sheets:1}]:[];revision++;
   }
   if(resource==='get_tournament'||resource==='manage_tournament')body={revision,teams,games:[{number:1,stage:'group',home:1,away:2,home_score:1,away_score:0,finished:true,winner:1}],standings:[],positions:[{player_id:'def',position:'DEF'},{player_id:me,position:'MEI'}],participants,scores};
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
  });
  await page.goto('/');await page.getByRole('button',{name:/^Campeonato/}).click();
- await page.getByText('Quem jogou · 0 confirmados',{exact:false}).click();
+ await page.getByText('Quem jogou · 2 confirmados',{exact:false}).click();
  const box=page.getByRole('checkbox',{name:/GG · DEF/});await expect(box).toBeVisible();
  if(role==='admin'){
-  await box.check();await page.getByRole('button',{name:'Salvar participantes'}).click();
+  await expect(box).toBeChecked();await box.uncheck();await page.getByRole('button',{name:'Salvar participantes'}).click();await expect(page.getByText('Quem jogou · 1 confirmados',{exact:false})).toBeVisible();await expect(box).not.toBeChecked();await box.check();await page.getByRole('button',{name:'Salvar participantes'}).click();
   await expect(page.locator('.tournament-score-summary')).toContainText('GG');
   await expect(page.locator('.tournament-score-summary')).toContainText('+3');
   await page.getByRole('button',{name:'Ranking',exact:true}).click();await page.getByLabel('Mês do ranking').fill('2026-11');
