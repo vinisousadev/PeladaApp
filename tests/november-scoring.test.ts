@@ -22,6 +22,7 @@ test('November scoring: frozen positions, confirmed participation, group placeme
  await db.exec(`insert into storage.objects(bucket_id,name) select 'player-photos',id::text||'/registration.webp' from public.profiles;update public.profiles set photo_path=id::text||'/registration.webp';insert into public.sessions(id,name,played_on,starts_at,created_by) values('${session}','Tournament',current_date,now(),'${admin}');insert into public.attendances(session_id,player_id,status) values('${session}','${player}','confirmed');`);
  await db.exec(readFileSync(new URL('024_tournaments.sql',dir),'utf8'));
  await db.exec(readFileSync(new URL('025_disable_player_reviews.sql',dir),'utf8'));
+ await db.exec(`update public.sessions set played_on='2026-10-28' where id='${session}'`);
  await db.exec(readFileSync(new URL('026_november_scoring.sql',dir),'utf8'));
  await db.exec(readFileSync(new URL('027_default_game_participants.sql',dir),'utf8'));
  await db.exec(`update public.sessions set played_on='2026-11-04' where id='${session}'; update public.profiles set position='DEF' where id='${player}';update public.profiles set position='MEI' where id='${admin}';update public.attendances set status='confirmed' where session_id='${session}';insert into public.attendances(session_id,player_id,status) values('${session}','${admin}','confirmed');`);
