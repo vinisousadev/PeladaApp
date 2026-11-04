@@ -5,6 +5,7 @@ import {Trophy,Flag,Users} from 'lucide-react';
 import {getSupabase} from '@/lib/supabase';
 import {dateLabel,newScoring,type SessionScore,type ClubData,type Match} from '@/lib/model';
 import './tournament.css';
+import {TeamEditor} from './team-editor';
 
 type Team={slot:number;name:string;players:string[]};
 type Game={number:number;stage:'group'|'semi'|'final'|'third';home:number;away:number;home_score:number;away_score:number;finished:boolean;winner:number|null;remaining_seconds:number;timer_started_at:string|null};
@@ -67,12 +68,6 @@ function TournamentSession({match,data,isAdmin,onChanged}:{match:Match;data:Club
  </>}
  </>}
  </>;
-}
-
-function TeamEditor({teams,players,busy,onSave,onCancel}:{teams:Team[];players:ClubData['profiles'];busy:boolean;onSave:(teams:Team[])=>Promise<void>;onCancel?:()=>void}){
- const [draft,setDraft]=useState<Team[]>(()=>teams.length?teams:Array.from({length:4},(_,i)=>({slot:i+1,name:`Time ${i+1}`,players:[]})));
- const update=(slot:number,patch:Partial<Team>)=>setDraft(old=>old.map(t=>t.slot===slot?{...t,...patch}:t));
- return <form className="tournament-setup" onSubmit={e=>{e.preventDefault();void onSave(draft);}}><h3>Os quatro times</h3><p>Informe os times já definidos no campo. Selecione até seis jogadores confirmados em cada um; você também pode começar apenas com os nomes dos times.</p><fieldset disabled={busy}><div className="tournament-teams">{draft.map(t=><div className={`tournament-team team-${t.slot}`} key={t.slot}><label>Nome do time {t.slot}<input required maxLength={40} value={t.name} onChange={e=>update(t.slot,{name:e.target.value})}/></label><details><summary>Jogadores · {t.players.length}/6</summary><div className="tournament-player-options">{players.map(p=>{const selected=t.players.includes(p.id);const elsewhere=draft.some(other=>other.slot!==t.slot&&other.players.includes(p.id));return <label key={p.id}><input type="checkbox" checked={selected} disabled={elsewhere||(!selected&&t.players.length>=6)} onChange={()=>update(t.slot,{players:selected?t.players.filter(id=>id!==p.id):[...t.players,p.id]})}/>{p.display_name}{elsewhere?' · em outro time':''}</label>;})}{!players.length&&<p>Nenhum jogador confirmado ainda.</p>}</div></details></div>)}</div><div className="tournament-actions"><button className="primary" type="submit">{busy?'Salvando…':'Salvar times e tabela de jogos'}</button>{onCancel&&<button type="button" className="secondary" onClick={onCancel}>Cancelar edição</button>}</div></fieldset></form>;
 }
 
 function GameCard({game:g,teams,busy,action,canEdit,modern,data,snapshot,canConfirm}:{game:Game;teams:Team[];busy:boolean;action:Action;canEdit:boolean;modern:boolean;data:ClubData;snapshot:Snapshot;canConfirm:boolean}){

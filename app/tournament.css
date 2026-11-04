@@ -3,3 +3,18 @@
 @media(max-width:500px){.tournament-heading{padding:20px}.tournament-heading>svg{display:none}.tournament-team{padding:13px}.tournament-setup{padding:14px}.tournament-section-title{align-items:flex-start;flex-direction:column;gap:4px}.tournament-game{padding:14px}.game-score{gap:7px}.game-score input{width:40px}.game-score>strong{font-size:14px}.tournament-actions>button{width:100%}.tournament-table th,.tournament-table td{padding:14px 10px}.tournament-champion h2{font-size:28px}}
 .game-participants{margin-top:16px;border-top:1px solid #ffe23740;padding-top:12px}.game-participants summary{cursor:pointer;color:#ffe237;font-size:13px;font-weight:700}.game-participants p,.tournament-score-summary>p{font-size:12px;color:#aaa;line-height:1.6;margin:10px 0}.game-participants fieldset{border:0;padding:0;display:grid;gap:14px}.game-participants fieldset>div{display:grid;gap:8px}.game-participants label{display:flex;align-items:center;gap:8px;font-size:12px}.game-participants input[type=checkbox]{width:17px;height:17px;min-height:0;flex:0 0 17px;accent-color:#ffe237}.tournament-score-summary{margin-top:28px}.tournament-score-summary th:first-child{min-width:150px}
 .tournament>*,.game-participants,.game-participants fieldset,.tournament-score-summary{min-width:0}.game-participants summary{overflow-wrap:anywhere}.game-participants label{flex-direction:row;justify-content:flex-start;text-align:left}.tournament-score-summary th:nth-child(2){min-width:0}
+.team-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.team-roster-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:20px;font-size:13px}
+.team-clear{display:inline-flex;align-items:center;gap:5px;color:#ffe456;font-size:12px;background:none;border:0;padding:8px 0;cursor:pointer}
+.tournament-team .team-selected{padding:0;margin:10px 0;list-style:none;display:grid;gap:7px}
+.team-selected li{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#ffe4560b;border:1px solid #ffe45630;border-radius:9px;padding:5px 8px 5px 12px}
+.team-selected li span{overflow-wrap:anywhere;min-width:0}
+.team-selected button{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border:0;border-radius:7px;background:#ffffff09;color:#ddd;cursor:pointer}
+.team-search{margin-top:16px}.team-search>div{position:relative}.team-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa}
+.tournament-setup .team-search input{padding-left:36px}
+.team-search-results{display:grid;max-height:220px;overflow:auto;margin-top:8px;border:1px solid #343434;border-radius:10px;background:#111}
+.team-search-results button{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:0;border-bottom:1px solid #2c2c2c;background:transparent;color:#eee;padding:11px 12px;cursor:pointer;min-height:48px;width:100%;font:inherit;font-size:14px}
+.team-search-results button span{min-width:0;overflow-wrap:anywhere}.team-search-results button small{display:block;font-size:11px;color:#aaa;margin-top:3px}.team-search-results button svg{color:#ffe456;flex-shrink:0}
+.team-search-results button:hover:not(:disabled){background:#ffe45612}.team-search-results>p{padding:12px}.team-empty{margin:12px 0}
+.team-editor-grid button:focus-visible,.team-search input:focus-visible{outline:2px solid #ffe456;outline-offset:2px}
+@media(max-width:600px){.team-editor-grid{grid-template-columns:1fr}}
