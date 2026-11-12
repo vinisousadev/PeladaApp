@@ -1,4 +1,6 @@
 "use client";
+import {PaymentPix} from "./payment-pix";
+import {PAYMENT_PIX} from "@/lib/pix-payment";
 import {PaymentProof} from "./payment-proof";
 
 import {
@@ -230,6 +232,7 @@ export function PaymentsView({
 
   return (
     <section className="payments-page" aria-label="Pagamentos dos mensalistas">
+      <PaymentPix/>
       <div className="payment-summary" aria-label="Resumo de pagamentos">
         <article>
           <span>Mensalistas</span>
@@ -393,7 +396,7 @@ function PaymentForm({
   ) => Promise<void>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [amount, setAmount] = useState(String(previous?.amount ?? "50.00"));
+  const [amount, setAmount] = useState(String(previous?.amount ?? PAYMENT_PIX.amount));
   const [proof, setProof] = useState<PreparedProof | null>(null);
   const [preview, setPreview] = useState("");
   const [preparing, setPreparing] = useState(false);

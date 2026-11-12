@@ -1,4 +1,25 @@
 import { expect, test } from "@playwright/test";
+import {PAYMENT_PIX} from '../../lib/pix-payment';
+
+test('Pix shows recipient, copies exact payload and offers manual fallback on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(value:string)=>{(window as any).copiedPix=value;}}}));
+ await page.goto('/');await page.getByRole('button',{name:'Explorar demonstração'}).click();await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+ const pix=page.getByRole('region',{name:'Seu Pix, sem complicação.'});
+ await expect(pix).toContainText(PAYMENT_PIX.recipient);await expect(pix).toContainText('NUBANK');await expect(pix).toContainText('R$ 39,00');
+  const qr=pix.getByRole('img',{name:/QR Code Pix de/});await expect(qr).toBeVisible();
+ expect(await qr.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await qr.screenshot({path:'../../work/pix-qr-mobile.png'});
+ await pix.getByRole('button',{name:'Copiar Pix',exact:true}).click();
+ expect(await page.evaluate(()=>(window as any).copiedPix)).toBe(PAYMENT_PIX.payload);
+ await expect(pix.getByRole('status')).toContainText('Código copiado');
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('denied');}}}));
+ await pix.getByRole('button',{name:'Pix copiado!',exact:true}).click();
+ await expect(pix.getByLabel('Código Pix Copia e Cola')).toHaveValue(PAYMENT_PIX.payload);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await pix.screenshot({path:'../../work/payment-pix-mobile.png'});
+ await page.getByRole('button',{name:/Registrar pagamento/}).click();await expect(page.getByLabel('Valor pago')).toHaveValue('39');
+});
 
 const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -44,7 +65,7 @@ test("mensalista envia comprovante e administrador confirma", async ({
 
   await page.getByLabel("Testar como").selectOption("admin");
   await page.getByRole("button", { name: "Pagamentos" }).click();
-  await expect(viniRow.getByRole("link", { name: /Comprovante/ })).toBeVisible();
+  await expect(viniRow.getByRole("button", { name: /Comprovante/ })).toBeVisible();
   await viniRow.getByRole("button", { name: /Confirmar/ }).click();
   await expect(viniRow).toContainText("Confirmado");
 

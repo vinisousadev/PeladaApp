@@ -1,0 +1,7 @@
+export const PAYMENT_PIX = {
+  payload: '00020126330014BR.GOV.BCB.PIX011112694727476520400005303986540539.005802BR5924Marcus Vinicius Ramos de6009SAO PAULO62140510Ay3NzJ8suS63047275',
+  recipient: 'MARCUS VINICIUS RAMOS DE SOUSA',
+  bank: 'NUBANK',
+  amount: 39,
+  qrPath: '/pix/pagamento-39.png',
+} as const;
