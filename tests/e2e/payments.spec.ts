@@ -26,6 +26,41 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
+test('dropping a receipt validates files and submits without a QR code', async ({page}) => {
+  await page.addInitScript(() => {
+    (window as any).BarcodeDetector = class { async detect() { return []; } };
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name:'Explorar demonstração'}).click();
+  await page.getByRole('button', {name:'Pagamentos',exact:true}).click();
+  await page.getByRole('button', {name:/Registrar pagamento/}).click();
+  const zone = page.locator('.payment-upload');
+  async function drop(files: {name:string;type:string;bytes:number[]}[]) {
+    const transfer = await page.evaluateHandle((files) => {
+      const data = new DataTransfer();
+      for (const file of files) data.items.add(new File([new Uint8Array(file.bytes)],file.name,{type:file.type}));
+      return data;
+    },files);
+    await zone.dispatchEvent('dragover',{dataTransfer:transfer});
+    await expect(zone).toHaveClass(/is-dragging/);
+    await zone.dispatchEvent('drop',{dataTransfer:transfer});
+    await expect(zone).not.toHaveClass(/is-dragging/);
+    await transfer.dispose();
+  }
+  const png={name:'recibo.png',type:'image/png',bytes:[...onePixelPng]};
+  await drop([png,png]);
+  await expect(page.locator('.payment-modal').getByRole('alert')).toContainText('apenas um comprovante');
+  await drop([{name:'recibo.txt',type:'text/plain',bytes:[1]}]);
+  await expect(page.locator('.payment-modal').getByRole('alert')).toContainText('PDF, JPG, PNG ou WebP');
+  await drop([png]);
+  await expect(page.getByText('Comprovante pronto para envio')).toBeVisible();
+  await expect(page.locator('.payment-modal').getByRole('alert')).toHaveCount(0);
+  await expect(page.getByText('Nenhum QR Pix foi identificado',{exact:false})).toHaveCount(0);
+  await page.getByRole('button',{name:/Enviar para confirmação/}).click();
+  await expect(page.locator('.payment-modal')).toHaveCount(0);
+  await expect(page.locator('.payment-row').filter({hasText:'Vini'})).toContainText('Aguardando confirmação');
+});
+
 test('PDF proof validates type and size, uploads unchanged and opens for admin review',async({page})=>{
  await page.goto('/');await page.getByRole('button',{name:'Explorar demonstração'}).click();await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
  await page.getByRole('button',{name:/Registrar pagamento/}).click();
@@ -74,7 +109,7 @@ test("mensalista envia comprovante e administrador confirma", async ({
     buffer: onePixelPng,
   });
   await expect(page.getByAltText("Prévia do comprovante")).toBeVisible();
-  await expect(page.getByText("Confirmação manual necessária")).toBeVisible();
+  await expect(page.getByText("Comprovante pronto para envio")).toBeVisible();
   await page.getByLabel("Valor pago").fill("65.50");
   await page.getByRole("button", { name: /Enviar para confirmação/ }).click();
 

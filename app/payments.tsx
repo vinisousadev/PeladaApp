@@ -78,7 +78,7 @@ async function inspectPix(image: HTMLImageElement): Promise<{
   if (!Detector)
     return {
       analysis: "unavailable",
-      detail: "Leitura automática de QR indisponível neste navegador.",
+      detail: "A organização vai conferir o comprovante e confirmar o pagamento. Não é necessário ter QR Code.",
     };
   try {
     const codes = await new Detector({ formats: ["qr_code"] }).detect(image);
@@ -89,12 +89,12 @@ async function inspectPix(image: HTMLImageElement): Promise<{
       };
     return {
       analysis: "unverified",
-      detail: "Nenhum QR Pix foi identificado. O comprovante seguirá para revisão manual.",
+      detail: "A organização vai conferir o comprovante e confirmar o pagamento. Não é necessário ter QR Code.",
     };
   } catch {
     return {
       analysis: "unavailable",
-      detail: "Não foi possível ler o QR. O comprovante seguirá para revisão manual.",
+      detail: "A organização vai conferir o comprovante e confirmar o pagamento. Não é necessário ter QR Code.",
     };
   }
 }
@@ -408,30 +408,39 @@ function PaymentForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const previewRef = useRef("");
+  const [dragging, setDragging] = useState(false);
+  const preparingRef = useRef(false);
+  const selection = useRef(0);
 
   useEffect(() => {
     dialog.current?.showModal();
     return () => {
+      selection.current++;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     };
   }, []);
 
   async function choose(file?: File) {
-    if (!file) return;
+    if (!file || busy || preparingRef.current) return;
+    preparingRef.current = true;
+    const currentSelection = ++selection.current;
     setPreparing(true);
     setProof(null);
     setError("");
     try {
       const prepared = await preparePaymentProof(file);
+      if (selection.current !== currentSelection) return;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
       previewRef.current = URL.createObjectURL(prepared.file);
       setPreview(previewRef.current);
       setProof(prepared);
     } catch (reason) {
+      if (selection.current !== currentSelection) return;
       setPreview("");
       setError((reason as Error).message);
     } finally {
-      setPreparing(false);
+      preparingRef.current = false;
+      if (selection.current === currentSelection) setPreparing(false);
     }
   }
 
@@ -500,17 +509,40 @@ function PaymentForm({
             />
           </div>
         </label>
-        <label className="payment-upload">
+        <label
+          className={`payment-upload${dragging ? " is-dragging" : ""}`}
+          onDragOver={(event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = busy || preparing ? "none" : "copy";
+            if (!busy && !preparing) setDragging(true);
+          }}
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            if (busy || preparingRef.current) return;
+            if (event.dataTransfer.files.length !== 1) {
+              setError("Arraste apenas um comprovante por vez.");
+              return;
+            }
+            void choose(event.dataTransfer.files[0]);
+          }}
+        >
           <Upload size={22} />
           <strong>Comprovante do Pix</strong>
+          <span>{dragging ? "Solte o comprovante aqui" : "Arraste o arquivo aqui ou selecione abaixo"}</span>
           <span>PDF, JPG, PNG ou WebP · até 3 MB</span>
           <input
             aria-label="Comprovante de pagamento"
             type="file"
             accept="application/pdf,.pdf,image/jpeg,image/png,image/webp"
-            required
             disabled={busy || preparing}
-            onChange={(event) => choose(event.target.files?.[0])}
+            onChange={(event) => {
+              void choose(event.target.files?.[0]);
+              event.target.value = "";
+            }}
           />
         </label>
         {preparing && <p className="muted">Preparando comprovante…</p>}
@@ -519,12 +551,10 @@ function PaymentForm({
             {preview && (proof.file.type==='application/pdf'?<div className="payment-pdf-preview"><FileCheck2 size={32}/><strong>Comprovante PDF</strong><p>{proof.file.name}</p><a href={preview} target="_blank" rel="noreferrer">Abrir prévia do PDF</a></div>:<img src={preview} alt="Prévia do comprovante" />)}
             <div>
               <span>
-                <SearchCheck size={18} /> Análise preliminar
+                <SearchCheck size={18} /> Arquivo anexado
               </span>
               <strong>
-                {proof.analysis === "detected"
-                  ? "Indício de Pix encontrado"
-                  : "Confirmação manual necessária"}
+                Comprovante pronto para envio
               </strong>
               <p>{proof.detail}</p>
             </div>
