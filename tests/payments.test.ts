@@ -17,6 +17,8 @@ test("payment amount accepts cents only inside the supported range", () => {
 });
 
 test("payment proof metadata blocks unsupported or oversized files", () => {
+  assert.doesNotThrow(() => validatePaymentProof({type:'application/pdf',size:MAX_PAYMENT_PROOF_BYTES}));
+  assert.throws(() => validatePaymentProof({type:'application/pdf',size:MAX_PAYMENT_PROOF_BYTES+1}),/3 MB/);
   assert.doesNotThrow(() =>
     validatePaymentProof({ type: "image/png", size: MAX_PAYMENT_PROOF_BYTES }),
   );

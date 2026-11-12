@@ -101,6 +101,11 @@ async function inspectPix(image: HTMLImageElement): Promise<{
 
 async function preparePaymentProof(file: File): Promise<PreparedProof> {
   validatePaymentProof(file);
+  if(file.type==='application/pdf'){
+    const header=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
+    if(header!=='%PDF-')throw Error('O arquivo não é um PDF válido. Escolha o comprovante original.');
+    return {file,analysis:'unavailable',detail:'Comprovante em PDF. A organização vai conferir o documento e confirmar o pagamento.'};
+  }
   const image = await loadImage(file);
   if (
     image.naturalWidth <= 0 ||
@@ -256,7 +261,7 @@ export function PaymentsView({
         <div>
           <strong>Comprovantes protegidos</strong>
           <p>
-            As imagens são privadas. Somente o próprio jogador e a organização
+            Os comprovantes são privados. Somente o próprio jogador e a organização
             podem acessá-las; a verificação de Pix é apenas um apoio à revisão.
           </p>
         </div>
@@ -498,20 +503,20 @@ function PaymentForm({
         <label className="payment-upload">
           <Upload size={22} />
           <strong>Comprovante do Pix</strong>
-          <span>JPG, PNG ou WebP · até 3 MB</span>
+          <span>PDF, JPG, PNG ou WebP · até 3 MB</span>
           <input
             aria-label="Comprovante de pagamento"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="application/pdf,.pdf,image/jpeg,image/png,image/webp"
             required
             disabled={busy || preparing}
             onChange={(event) => choose(event.target.files?.[0])}
           />
         </label>
-        {preparing && <p className="muted">Protegendo e analisando imagem…</p>}
+        {preparing && <p className="muted">Preparando comprovante…</p>}
         {proof && (
           <div className={`pix-analysis ${proof.analysis}`}>
-            {preview && <img src={preview} alt="Prévia do comprovante" />}
+            {preview && (proof.file.type==='application/pdf'?<div className="payment-pdf-preview"><FileCheck2 size={32}/><strong>Comprovante PDF</strong><p>{proof.file.name}</p><a href={preview} target="_blank" rel="noreferrer">Abrir prévia do PDF</a></div>:<img src={preview} alt="Prévia do comprovante" />)}
             <div>
               <span>
                 <SearchCheck size={18} /> Análise preliminar

@@ -202,6 +202,18 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  await asUser(b,`insert into storage.objects(bucket_id,name) values('payment-proofs','${secondPath}')`);
  await assert.rejects(asUser(b,`select public.submit_payment('${b}','2026-09-01',55,'${secondPath}','unverified')`),/já foi confirmado/);
  assert.deepEqual((await db.query(`select public,file_size_limit::text,allowed_mime_types from storage.buckets where id='payment-proofs'`)).rows,[{public:false,file_size_limit:'3145728',allowed_mime_types:['image/webp']}]);
+ await db.exec(readFileSync(new URL('../supabase/migrations/031_pdf_payment_proofs.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/031_pdf_payment_proofs.sql',import.meta.url),'utf8'));
+ const pdfPath=`${b}/2026-10/00000000-0000-4000-8000-000000000031.pdf`;
+ await assert.rejects(asUser(a,`insert into storage.objects(bucket_id,name) values('payment-proofs','${pdfPath}')`));
+ await assert.rejects(asUser(b,`insert into storage.objects(bucket_id,name) values('payment-proofs','${pdfPath.replace('.pdf','.html')}')`));
+ await asUser(b,`insert into storage.objects(bucket_id,name) values('payment-proofs','${pdfPath}')`);
+ await asUser(b,`select public.submit_payment('${b}','2026-10-01',39,'${pdfPath}','unavailable')`);
+ assert.equal((await asUser(b,`select * from storage.objects where name='${pdfPath}'`)).rows.length,1);
+ assert.equal((await asUser(a,`select * from storage.objects where name='${pdfPath}'`)).rows.length,0);
+ assert.equal((await asUser(admin,`select * from storage.objects where name='${pdfPath}'`)).rows.length,1);
+ await asUser(admin,`select public.review_payment((select id from payments where player_id='${b}' and payment_month='2026-10-01'),'confirmed')`);
+ assert.deepEqual((await db.query(`select public,file_size_limit::text,allowed_mime_types from storage.buckets where id='payment-proofs'`)).rows,[{public:false,file_size_limit:'3145728',allowed_mime_types:['image/webp','application/pdf']}]);
  await db.exec(readFileSync(new URL('../supabase/migrations/012_monthly_open_sessions.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/012_monthly_open_sessions.sql',import.meta.url),'utf8'));
  await assert.rejects(asUser(a,`select public.set_membership_and_attendance('${a}','monthly')`),/administrador/);
