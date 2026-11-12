@@ -796,7 +796,8 @@ export default function Club() {
   }
   async function manageWaitlist(session:Match,playerId:string,action:'add'|'promote') {
  if(!isAdmin)throw Error('Apenas o administrador pode gerenciar a lista de espera.');
- if(!attendanceWindow(session).canConfirm)throw Error('Gerencie a fila somente em peladas abertas antes do início.');
+ if(session.status!=='open')throw Error('A pelada precisa estar aberta para gerenciar a lista de espera.');
+ if(action==='add'&&!attendanceWindow(session).canConfirm)throw Error('Gerencie a fila somente em peladas abertas antes do início.');
  if(demo){
  const own=data.attendances.find(a=>a.session_id===session.id&&a.player_id===playerId);
  if(action==='promote'&&own?.status!=='waiting')throw Error('O jogador precisa estar na lista de espera.');

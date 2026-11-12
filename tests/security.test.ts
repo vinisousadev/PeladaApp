@@ -338,6 +338,23 @@ test('PostgreSQL permissions, closed games, capacity and audit survive direct AP
  assert.equal((await db.query<{n:number}>(`select count(*)::int n from attendances where session_id='${unlimited}' and status='waiting'`)).rows[0].n,allPlayers.length-24);
  await asUser(admin,`select public.set_membership_and_attendance('${outsider}','guest')`);
  assert.equal((await db.query<{membership:string}>(`select membership from profiles where id='${outsider}'`)).rows[0].membership,'guest');
+
+ await db.exec(readFileSync(new URL('../supabase/migrations/029_admin_promote_after_start.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/029_admin_promote_after_start.sql',import.meta.url),'utf8'));
+ const next=(await db.query<{player_id:string}>(`select player_id from attendances where session_id='${unlimited}' and status='waiting' order by queue_order limit 1`)).rows[0].player_id;
+ const removed=(await db.query<{player_id:string}>(`select player_id from attendances where session_id='${unlimited}' and status='confirmed' limit 1`)).rows[0].player_id;
+ await asUser(admin,`update sessions set starts_at=now()-interval '1 day' where id='${unlimited}'`);
+ await assert.rejects(asUser(admin,`select public.manage_waitlist('${unlimited}','${next}','promote')`),/24 confirmados/);
+ await asUser(admin,`select public.admin_remove_attendance('${unlimited}','${removed}')`);
+ await assert.rejects(asUser(b,`select public.manage_waitlist('${unlimited}','${next}','promote')`),/administrador/);
+ await assert.rejects(asUser(b,`select public.set_attendance_manual('${unlimited}',true)`),/encerraram/);
+ await asUser(admin,`select public.manage_waitlist('${unlimited}','${next}','promote')`);
+ await asUser(admin,`select public.manage_waitlist('${unlimited}','${next}','promote')`);
+ assert.equal((await db.query<{n:number}>(`select count(*)::int n from attendances where session_id='${unlimited}' and status='confirmed'`)).rows[0].n,24);
+ await assert.rejects(asUser(admin,`select public.manage_waitlist('${unlimited}','${guest}','add')`),/antes do início/);
+ await asUser(admin,`update sessions set status='closed' where id='${unlimited}'`);
+ await assert.rejects(asUser(admin,`select public.manage_waitlist('${unlimited}','${next}','promote')`),/aberta/);
+ await assert.rejects(asUser(admin,`select public.manage_waitlist('${queued}','${guest}','promote')`),/aberta/);
  await db.close();
 });
 
