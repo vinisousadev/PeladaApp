@@ -2,6 +2,7 @@
 import {PaymentPix} from "./payment-pix";
 import {PAYMENT_PIX} from "@/lib/pix-payment";
 import {PaymentProof} from "./payment-proof";
+import {MissingPaymentProofs} from "./missing-payment-proofs";
 
 import {
   Check,
@@ -282,6 +283,8 @@ export function PaymentsView({
         </div>
         <span className="badge">{monthly.length} mensalistas</span>
       </div>
+
+      {isAdmin && <MissingPaymentProofs key={month} profiles={profiles} payments={payments} month={month}/>}
 
       <div className="payment-list">
         {monthly.map((player) => {

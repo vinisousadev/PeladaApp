@@ -26,6 +26,32 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
+test('admin copies missing proof list excluding pending and separating rejected receipts',async({page})=>{
+  await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(value:string)=>{(window as any).copiedList=value;}}}));
+  await page.goto('/');
+  await page.getByRole('button',{name:'Explorar demonstração'}).click();
+  await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Gerar lista de comprovantes pendentes'})).toHaveCount(0);
+  await page.getByRole('button',{name:/Registrar pagamento/}).click();
+  await page.getByLabel('Comprovante de pagamento').setInputFiles({name:'pix.png',mimeType:'image/png',buffer:onePixelPng});
+  await page.getByRole('button',{name:/Enviar para confirmação/}).click();
+  await page.getByLabel('Testar como').selectOption('admin');
+  await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+  await page.getByRole('button',{name:'Gerar lista de comprovantes pendentes'}).click();
+  const list=page.getByLabel('Lista de comprovantes pendentes');
+  expect(await list.inputValue()).toContain('Falta enviar (20)');
+  expect(await list.inputValue()).not.toMatch(/\d+\. Vini/);
+  await page.getByRole('button',{name:'Copiar lista',exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).copiedList)).toBe(await list.inputValue());
+  const row=page.locator('.payment-row').filter({hasText:'Vini'});
+  await row.getByRole('button',{name:'Solicitar revisão'}).click();
+  await expect(list).toHaveValue(/Precisam reenviar após revisão \(2\):\n1\. Gui\n2\. Vini/);
+  await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('denied');}}}));
+  await page.getByRole('button',{name:'Copiar lista',exact:true}).click();
+  await expect(page.getByText('Selecione e copie o texto abaixo para compartilhar.')).toBeVisible();
+  await expect(list).toBeFocused();
+});
+
 test('dropping a receipt validates files and submits without a QR code', async ({page}) => {
   await page.addInitScript(() => {
     (window as any).BarcodeDetector = class { async detect() { return []; } };
