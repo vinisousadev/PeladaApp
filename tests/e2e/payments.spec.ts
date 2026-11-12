@@ -26,6 +26,25 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
+test('PDF proof validates type and size, uploads unchanged and opens for admin review',async({page})=>{
+ await page.goto('/');await page.getByRole('button',{name:'Explorar demonstração'}).click();await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+ await page.getByRole('button',{name:/Registrar pagamento/}).click();
+ const input=page.getByLabel('Comprovante de pagamento');
+ await input.setInputFiles({name:'invalido.pdf',mimeType:'application/pdf',buffer:Buffer.from('not a PDF')});
+ await expect(page.locator('.payment-modal .error')).toContainText('não é um PDF válido');
+ await input.setInputFiles({name:'grande.pdf',mimeType:'application/pdf',buffer:Buffer.alloc(3*1024*1024+1)});
+ await expect(page.locator('.payment-modal .error')).toContainText('3 MB');
+ const pdf=Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF');
+ await input.setInputFiles({name:'comprovante.pdf',mimeType:'application/pdf',buffer:pdf});
+ await expect(page.getByRole('link',{name:'Abrir prévia do PDF'})).toHaveAttribute('href',/^blob:/);
+ await expect(page.getByAltText('Prévia do comprovante')).toHaveCount(0);
+ await page.getByRole('button',{name:/Enviar para confirmação/}).click();
+ await page.getByLabel('Testar como').selectOption('admin');await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+ const row=page.locator('.payment-row').filter({hasText:'Vini'});await row.getByRole('button',{name:'Comprovante',exact:true}).click();
+ await expect(row.getByRole('link',{name:'Abrir PDF em nova aba'})).toHaveAttribute('href','data:application/pdf;base64,'+pdf.toString('base64'));
+ await row.getByRole('button',{name:/Confirmar/}).click();await expect(row).toContainText('Confirmado');
+});
+
 test("mensalista envia comprovante e administrador confirma", async ({
   page,
 }) => {

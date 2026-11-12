@@ -1,6 +1,7 @@
 export const MAX_PAYMENT_PROOF_BYTES = 3 * 1024 * 1024;
 export const MAX_PAYMENT_PROOF_PIXELS = 20_000_000;
 export const PAYMENT_PROOF_TYPES = [
+  "application/pdf",
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -19,7 +20,7 @@ export function validPaymentAmount(amount: number) {
 
 export function validatePaymentProof(file: Pick<File, "size" | "type">) {
   if (!PAYMENT_PROOF_TYPES.includes(file.type as (typeof PAYMENT_PROOF_TYPES)[number]))
-    throw Error("Escolha uma imagem JPG, PNG ou WebP.");
+    throw Error("Escolha um arquivo PDF, JPG, PNG ou WebP.");
   if (file.size <= 0 || file.size > MAX_PAYMENT_PROOF_BYTES)
     throw Error("O comprovante deve ter no máximo 3 MB.");
 }

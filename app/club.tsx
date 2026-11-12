@@ -626,6 +626,7 @@ export default function Club() {
       throw Error("O pagamento é exclusivo para mensalistas.");
     if (!validPaymentAmount(amount)) throw Error("Valor de pagamento inválido.");
     validatePaymentProof(proof);
+    const proofExtension=proof.type==='application/pdf'?'pdf':'webp';
     const previous = data.payments.find(
       (payment) =>
         payment.player_id === player.id &&
@@ -642,7 +643,7 @@ export default function Club() {
         player_id: player.id,
         payment_month: `${paymentMonth}-01`,
         amount,
-        proof_path: `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`,
+        proof_path: `${player.id}/${paymentMonth}/${crypto.randomUUID()}.${proofExtension}`,
         proof_url: await fileAsDataURL(proof),
         status: "pending",
         pix_analysis: analysis,
@@ -660,11 +661,11 @@ export default function Club() {
       }));
     } else {
       const sb = getSupabase()!;
-      const path = `${player.id}/${paymentMonth}/${crypto.randomUUID()}.webp`;
+      const path = `${player.id}/${paymentMonth}/${crypto.randomUUID()}.${proofExtension}`;
       const { error: uploadError } = await sb.storage
         .from("payment-proofs")
         .upload(path, proof, {
-          contentType: "image/webp",
+          contentType: proof.type,
           cacheControl: "3600",
           upsert: false,
         });
