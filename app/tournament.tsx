@@ -13,7 +13,7 @@ type Standing={slot:number;name:string;played:number;wins:number;draws:number;lo
 type Participant={game_number:number;player_id:string;team_slot:number};
 type Position={player_id:string;position:string};
 type Snapshot={placements?:{slot:number;place:number}[];participants?:Participant[];positions?:Position[];scores?:SessionScore[];revision:number|null;server_time:string;teams:Team[];games:Game[];standings:Standing[]};
-type Action=(action:string,payload?:Record<string,unknown>)=>Promise<boolean>;
+type Action=(action:string,payload?:Record<string,unknown>,expectedRevision?:number|null)=>Promise<boolean>;
 const errorMessage=(e:unknown)=>e&&typeof e==='object'&&'message' in e?String(e.message):'Não foi possível atualizar. Confira a conexão e tente novamente.';
 
 export function Tournament({data,isAdmin,demo,onChanged}:{data:ClubData;isAdmin:boolean;demo:boolean;onChanged:()=>void}){
@@ -28,13 +28,14 @@ export function Tournament({data,isAdmin,demo,onChanged}:{data:ClubData;isAdmin:
 
 function TournamentSession({match,data,isAdmin,onChanged}:{match:Match;data:ClubData;isAdmin:boolean;onChanged:()=>void}){
  const [snapshot,setSnapshot]=useState<Snapshot|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[editing,setEditing]=useState(false),[resetPrompt,setResetPrompt]=useState(false),[removeThirdPrompt,setRemoveThirdPrompt]=useState(false);
- const busyRef=useRef(false),request=useRef(0),revision=useRef<number|null>(null);
+ const busyRef=useRef(false),request=useRef(0),revision=useRef<number|null>(null),editRevision=useRef<number|null>(null);
  const accept=useCallback((value:Snapshot)=>{revision.current=value.revision;setSnapshot(value);},[]);
  const load=useCallback(async()=>{if(busyRef.current)return;const ticket=++request.current;try{const result=await getSupabase()!.rpc('get_tournament',{p_session_id:match.id});if(ticket!==request.current)return;if(result.error)throw result.error;accept(result.data);setError('');}catch(e){if(ticket===request.current)setError(errorMessage(e));}},[match.id,accept]);
  useEffect(()=>{void load();const refresh=()=>{if(document.visibilityState==='visible')void load();};const poll=setInterval(refresh,5000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);return()=>{++request.current;clearInterval(poll);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[load]);
- const action:Action=async(p_action,p_payload={})=>{if(busyRef.current)return false;busyRef.current=true;setBusy(true);setError('');++request.current;try{const result=await getSupabase()!.rpc('manage_tournament',{p_session_id:match.id,p_revision:revision.current,p_action,p_payload});if(result.error)throw result.error;accept(result.data);onChanged();return true;}catch(e){setError(errorMessage(e));return false;}finally{busyRef.current=false;setBusy(false);}};
+ const action:Action=async(p_action,p_payload={},expectedRevision=revision.current)=>{if(busyRef.current)return false;busyRef.current=true;setBusy(true);setError('');++request.current;try{const result=await getSupabase()!.rpc('manage_tournament',{p_session_id:match.id,p_revision:expectedRevision,p_action,p_payload});if(result.error)throw result.error;accept(result.data);onChanged();return true;}catch(e){setError(errorMessage(e));return false;}finally{busyRef.current=false;setBusy(false);}};
  const canEdit=isAdmin&&match.status!=='cancelled';
  const games=snapshot?.games??[],teams=snapshot?.teams??[];
+ const rosterCorrection=games.some(g=>g.finished||g.timer_started_at||g.remaining_seconds!==480||g.home_score||g.away_score);
  const teamName=(slot:number)=>teams.find(t=>t.slot===slot)?.name??'Time';
  const final=games.find(g=>g.stage==='final'),third=games.find(g=>g.stage==='third'),hasSemis=games.some(g=>g.stage==='semi');
  const eligible=data.profiles.filter(p=>data.attendances.some(a=>a.session_id===match.id&&a.player_id===p.id&&a.status!=='waiting')).sort((a,b)=>a.display_name.localeCompare(b.display_name,'pt-BR'));
@@ -44,9 +45,9 @@ function TournamentSession({match,data,isAdmin,onChanged}:{match:Match;data:Club
  {match.status==='cancelled'&&<p className="tournament-notice">Pelada cancelada. O campeonato está disponível apenas para consulta.</p>}
  {snapshot&&<>
  {final?.finished&&<div className="tournament-champion"><Trophy size={44}/><div><span>CAMPEÃO DA PELADA</span><h2>{teamName(final.winner!)}</h2><p>{final.home_score} × {final.away_score}{final.home_score===final.away_score?' · Vitória nos pênaltis':''}</p></div></div>}
- {(!teams.length||editing)&&canEdit?<TeamEditor teams={teams} players={eligible} busy={busy} onCancel={teams.length?()=>setEditing(false):undefined} onSave={async(value)=>{if(await action('teams',{teams:value}))setEditing(false);}}/>:<>
+ {(!teams.length||editing)&&canEdit?<TeamEditor correction={rosterCorrection} teams={teams} players={eligible} rosterProfiles={data.profiles} busy={busy} onCancel={teams.length?()=>setEditing(false):undefined} onSave={async(value)=>{if(await action(rosterCorrection?'correct_rosters':'teams',{teams:value},editing?editRevision.current:revision.current))setEditing(false);}}/>:<>
  {!teams.length?<p className="empty">O administrador ainda vai cadastrar os quatro times desta pelada.</p>:<div className="tournament-teams">{teams.map(t=><article className={`tournament-team team-${t.slot}`} key={t.slot}><span>TIME {t.slot}</span><h3>{t.name}</h3><p><Users size={14}/> {t.players.length}/6 jogadores</p><ul>{t.players.map(id=><li key={id}>{data.profiles.find(p=>p.id===id)?.display_name??'Jogador'}</li>)}</ul></article>)}</div>}
- {canEdit&&teams.length>0&&!games.some(g=>g.finished||g.timer_started_at||g.remaining_seconds!==480||g.home_score||g.away_score)&&<button className="secondary" onClick={()=>setEditing(true)}>Editar os quatro times</button>}
+ {canEdit&&teams.length>0&&<button className="secondary" onClick={()=>{editRevision.current=revision.current;setEditing(true);}}>Corrigir jogadores dos times</button>}
  </>}
  {teams.length>0&&<>
  <div className="tournament-section-title"><h3>Classificação</h3><span>Vitória 3 pts · Empate 1 pt</span></div>

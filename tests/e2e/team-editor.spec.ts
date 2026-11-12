@@ -37,10 +37,10 @@ test('team search, accent matching, capacity, duplicates, clear and persist draf
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.screenshot({path:'../../work/team-search-mobile.png',fullPage:true});
  await page.getByRole('button',{name:'Salvar times e tabela de jogos'}).click();
- await expect(page.getByRole('button',{name:'Editar os quatro times'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Corrigir jogadores dos times'})).toBeVisible();
  expect(saved.teams[0]).toMatchObject({name:'Amarelo',players:['player-2']});expect(saved.teams[1].players).toEqual(['player-1']);
- await page.getByRole('button',{name:'Editar os quatro times'}).click();await first.getByRole('button',{name:'Limpar time',exact:true}).click();
+ await page.getByRole('button',{name:'Corrigir jogadores dos times'}).click();await first.getByRole('button',{name:'Limpar time',exact:true}).click();
  await page.getByRole('button',{name:'Cancelar edição'}).click();
- await page.getByRole('button',{name:'Editar os quatro times'}).click();await expect(first.getByRole('button',{name:'Remover Pedro do time 1',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Corrigir jogadores dos times'}).click();await expect(first.getByRole('button',{name:'Remover Pedro do time 1',exact:true})).toBeVisible();
  await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'../../work/team-search-desktop.png',fullPage:true});
 });
