@@ -3,6 +3,7 @@ import {PaymentPix} from "./payment-pix";
 import {PAYMENT_PIX} from "@/lib/pix-payment";
 import {PaymentProof} from "./payment-proof";
 import {MissingPaymentProofs} from "./missing-payment-proofs";
+import {ManualPayment} from "./manual-payment";
 
 import {
   Check,
@@ -180,6 +181,7 @@ export function PaymentsView({
   isAdmin,
   submit,
   review,
+  confirmWithoutProof,
 }: {
   profiles: Profile[];
   payments: Payment[];
@@ -194,8 +196,10 @@ export function PaymentsView({
     analysis: PixAnalysis,
   ) => Promise<void>;
   review: (payment: Payment, status: "confirmed" | "rejected") => Promise<void>;
+  confirmWithoutProof: (player: Profile, month: string, amount: number) => Promise<void>;
 }) {
   const [target, setTarget] = useState<Profile | null>(null);
+  const [manualTarget, setManualTarget] = useState<Profile | null>(null);
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
   const monthly = useMemo(
@@ -324,14 +328,15 @@ export function PaymentsView({
                 )}
                 {canSee && payment && (
                   <small>
-                    {payment.pix_analysis === "detected"
+                    {!payment.proof_path ? "Confirmado pelo ADM · sem comprovante" : payment.pix_analysis === "detected"
                       ? "QR Pix identificado"
                       : "Revisão manual necessária"}
                   </small>
                 )}
               </div>
               <div className="payment-actions">
-                {canSee && payment && <PaymentProof key={me.id+payment.proof_path} path={payment.proof_path} demoUrl={payment.proof_url}/>}
+                {canSee && payment?.proof_path && <PaymentProof key={me.id+payment.proof_path} path={payment.proof_path} demoUrl={payment.proof_url}/>}
+                {isAdmin && !payment && <button className="secondary" onClick={()=>setManualTarget(player)}><Check size={16}/>Confirmar sem comprovante</button>}
                 {canSubmit && (
                   <button className="primary" onClick={() => setTarget(player)}>
                     {payment ? "Reenviar" : "Registrar pagamento"}
@@ -370,6 +375,7 @@ export function PaymentsView({
         </div>
       )}
 
+      {isAdmin && manualTarget && <ManualPayment key={`${manualTarget.id}-${month}`} player={manualTarget} month={month} close={()=>setManualTarget(null)} confirm={confirmWithoutProof}/>}
       {target && (
         <PaymentForm
           key={`${target.id}-${month}`}
