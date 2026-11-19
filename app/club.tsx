@@ -687,6 +687,23 @@ export default function Club() {
     }
     setNotice("Pagamento enviado. Agora ele aguarda confirmação da organização.");
   }
+  async function confirmPaymentWithoutProof(player: Profile, paymentMonth: string, amount: number) {
+    if (!isAdmin) throw Error("Apenas o administrador pode confirmar pagamentos sem comprovante.");
+    if (player.membership !== "monthly") throw Error("O pagamento é exclusivo para mensalistas.");
+    if (!validPaymentAmount(amount)) throw Error("Valor de pagamento inválido.");
+    if (data.payments.some(p=>p.player_id===player.id&&p.payment_month.slice(0,7)===paymentMonth))
+      throw Error("Já existe um pagamento para este jogador neste mês.");
+    if (demo) {
+      const now=new Date().toISOString();
+      const payment: Payment={id:crypto.randomUUID(),player_id:player.id,payment_month:`${paymentMonth}-01`,amount,proof_path:null,status:"confirmed",pix_analysis:"unavailable",submitted_by:me!.id,submitted_at:now,reviewed_by:me!.id,reviewed_at:now};
+      setData(current=>({...current,payments:[...current.payments,payment]}));
+    } else {
+      const {error}=await getSupabase()!.rpc("confirm_payment_without_proof",{p_player_id:player.id,p_month:`${paymentMonth}-01`,p_amount:amount});
+      if(error)throw error;
+      await load();
+    }
+    setNotice("Pagamento confirmado pelo ADM, sem comprovante.");
+  }
   async function reviewPayment(
     payment: Payment,
     status: "confirmed" | "rejected",
@@ -1407,6 +1424,7 @@ export default function Club() {
               isAdmin={isAdmin}
               submit={submitPayment}
               review={reviewPayment}
+              confirmWithoutProof={confirmPaymentWithoutProof}
             />
           )}
           {view === "players" && (

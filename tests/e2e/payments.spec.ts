@@ -26,6 +26,27 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
+test('admin confirms payment without an attachment and removes player from missing list',async({page})=>{
+  await page.goto('/');await page.getByRole('button',{name:'Explorar demonstração'}).click();
+  await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Confirmar sem comprovante',exact:true})).toHaveCount(0);
+  await page.getByLabel('Testar como').selectOption('admin');
+  await page.getByRole('button',{name:'Pagamentos',exact:true}).click();
+  const row=page.locator('.payment-row').filter({hasText:'Vini'});
+  await row.getByRole('button',{name:'Confirmar sem comprovante',exact:true}).click();
+  await expect(page.getByLabel('Valor recebido')).toHaveValue('39');
+  await page.getByLabel('Valor recebido').fill('0');
+  await expect(page.getByRole('button',{name:'Confirmar pagamento recebido'})).toBeDisabled();
+  await page.getByLabel('Valor recebido').fill('57.50');
+  await page.getByRole('button',{name:'Confirmar pagamento recebido'}).click();
+  await expect(row).toContainText('Confirmado pelo ADM · sem comprovante');
+  await expect(row).toContainText('R$ 57,50');
+  await expect(row.getByRole('button',{name:'Comprovante',exact:true})).toHaveCount(0);
+  await expect(row.getByRole('button',{name:'Confirmar sem comprovante',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'Gerar lista de comprovantes pendentes'}).click();
+  expect(await page.getByLabel('Lista de comprovantes pendentes').inputValue()).not.toMatch(/\d+\. Vini/);
+});
+
 test('admin copies missing proof list excluding pending and separating rejected receipts',async({page})=>{
   await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(value:string)=>{(window as any).copiedList=value;}}}));
   await page.goto('/');
